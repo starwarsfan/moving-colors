@@ -51,7 +51,7 @@
     "error": {
       "unknown": "Unknown error occurred.",
       "name": "Name required.",
-      "target_light_entity": "Entity required.",
+      "target_light_entity": "Entity required."
     },
     "abort": {
       "already_configured": "This entry is already configured."
