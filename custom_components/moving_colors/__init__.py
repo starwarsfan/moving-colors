@@ -5,11 +5,11 @@ import re
 from typing import TYPE_CHECKING, Any
 
 import voluptuous as vol
-from homeassistant.config_entries import ConfigEntries, ConfigEntry
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     Platform,
 )
-from homeassistant.core import Event, HomeAssistant, ServiceCall, State, callback
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
 
 from .const import (
@@ -22,7 +22,7 @@ from .const import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Awaitable, Callable
+    from collections.abc import Callable
 
 _GLOBAL_DOMAIN_LOGGER = logging.getLogger(DOMAIN)
 _LOGGER = logging.getLogger(__name__)
@@ -32,6 +32,7 @@ PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.SWITCH]
 # Get the schema version from constants
 CURRENT_SCHEMA_VERSION = VERSION
 
+
 # Setup entry point, which is called at every start of Home Assistant.
 # Not specific for config entries.
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
@@ -39,7 +40,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     _LOGGER.debug("[%s] async_setup called.", DOMAIN)
 
     # Placeholder for all data of this integration within 'hass.data'.
-    # Will be used to store things like the ShadowControlManager instances.
+    # Will be used to store things like the MovingColorsManager instances.
     # hass.data[DOMAIN_DATA_MANAGERS] will be a dictionary to map ConfigEntry
     # IDs to manager instances.
     hass.data.setdefault(DOMAIN_DATA_MANAGERS, {})
@@ -133,7 +134,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         _LOGGER.error("[%s] No target light entity ID found in config for entry %s.", manager_name, entry.entry_id)
         return False
 
-    # Hand over the combined configuration dictionary to the ShadowControlManager
+    # Hand over the combined configuration dictionary to the MovingColorsManager
     manager = MovingColorsManager(hass, config_data, entry.entry_id, instance_specific_logger)
 
     # Store manager within 'hass.data' to let sensors and other components access it.
@@ -183,13 +184,13 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
     )
 
     new_data = config_entry.data.copy()
-    new_options = config_entry.options.copy()
+    # new_options = config_entry.options.copy()
 
     if config_entry.version == 1:
         # Migrate configuration version 1
 
         try:
-            validated_options = FULL_OPTIONS_SCHEMA(new_options)
+            validated_options = None  # FULL_OPTIONS_SCHEMA(new_options)
             _LOGGER.debug("[%s] Migrated options successfully validated. Result: %s", DOMAIN, validated_options)
             _LOGGER.debug("[%s] Type of validated_options: %s", DOMAIN, type(validated_options))
         except vol.Invalid:
@@ -243,7 +244,6 @@ class MovingColorsManager:
         self._options = config
 
         self._unsub_callbacks: list[Callable[[], None]] = []
-
 
 
 # Helper for dynamic log output
