@@ -1,0 +1,60 @@
+{
+  "title": "Moving Colors",
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "name": "Instance name",
+          "target_light_entity": "Covers to maintain",
+          "debug_enabled": "Debug logs"
+        },
+        "data_description": {
+          "name": "A descriptive and unique name for this Moving Colors (MC) instance",
+          "target_light_entity": "Covers which should be handled by this Moving Colors (MC) instance",
+          "debug_enabled": "Activate debug logs for this instance"
+        }
+      },
+      "options": {
+        "title": "Configurable options",
+        "description": "All configurable options of this SC instance"
+      }
+    },
+    "error": {
+      "unknown": "Unknown error occurred.",
+      "name": "Name required.",
+      "target_light_entity": "Entity required."
+    },
+    "abort": {
+      "already_configured": "This entry is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "user": {
+        "description": "Configure the first part of the details for the facade (or even the window), which should be handled by this SC instance",
+        "data": {
+          "name": "Instance name",
+          "target_light_entity": "Cover to maintain",
+          "debug_enabled": "Debug logs"
+        },
+        "data_description": {
+          "name": "A descriptive and unique name for this Moving Colors (MC) instance",
+          "target_light_entity": "Cover which should be handled by this Moving Colors (MC) instance",
+          "debug_enabled": "Activate debug logs for this instance"
+        }
+      },
+      "options": {
+        "title": "Configurable options",
+        "description": "All configurable options of this SC instance"
+      }
+    },
+    "error": {
+      "unknown": "Unknown error occurred.",
+      "name": "Name required.",
+      "target_light_entity": "Entity required.",
+    },
+    "abort": {
+      "already_configured": "This entry is already configured."
+    }
+  }
+}

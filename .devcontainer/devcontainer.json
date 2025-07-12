@@ -47,7 +47,7 @@
   },
   "forwardPorts": [8123],
   "image": "mcr.microsoft.com/devcontainers/python:3.13",
-  "name": "Shadow Control dev env",
+  "name": "Moving Colors dev env",
   "postCreateCommand": "scripts/setup",
   "remoteUser": "vscode"
 }

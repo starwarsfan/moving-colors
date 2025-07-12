@@ -1,0 +1,16 @@
+{
+  "domain": "moving_colors",
+  "name": "Moving Colors",
+  "codeowners": [
+    "@starwarsfan"
+  ],
+  "config_flow": true,
+  "dependencies": [
+    "sun"
+  ],
+  "documentation": "https://github.com/starwarsfan/moving-colors",
+  "integration_type": "device",
+  "iot_class": "calculated",
+  "issue_tracker": "https://github.com/starwarsfan/moving-colors/issues",
+  "version": "0.1.0"
+}

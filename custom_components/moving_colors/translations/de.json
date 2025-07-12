@@ -1,0 +1,60 @@
+{
+  "title": "Moving Colors",
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "name": "Instanzname",
+          "target_light_entity": "Licht-Entitäten",
+          "debug_enabled": "Debug-Modus"
+        },
+        "data_description": {
+          "name": "Eindeutiger Name dieser Moving Colors (MC) Instanz",
+          "target_light_entity": "Eine oder mehrere Licht-Entitäten, welche mit dieser Moving Colors (MC) Instanz gesteuert werden sollen",
+          "debug_enabled": "Debug-Logs für diese Instanz aktivieren"
+        }
+      },
+      "options": {
+        "title": "Konfigurierbare Optionen",
+        "description": "Alle konfigurierbaren Optionen dieser MC Instanz"
+      }
+    },
+    "error": {
+      "unknown": "Unknown error occurred.",
+      "name": "Name wird zwingend benötigt.",
+      "target_light_entity": "Zu steuernde Entität muss ausgewählt werden."
+    },
+    "abort": {
+      "already_configured": "This entry is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "user": {
+        "description": "Hier wird der erste Teil der Details der zu steuernden Fassade resp. des zu steuernden Fensters konfiguriert.",
+        "data": {
+          "name": "Instanzname",
+          "target_light_entity": "Behang-Entität",
+          "debug_enabled": "Debug-Modus"
+        },
+        "data_description": {
+          "name": "Eindeutiger Name dieser Moving Colors (MC) Instanz",
+          "target_light_entity": "Behang, welcher mit dieser Moving Colors (MC) Instanz gehandhabt werden soll",
+          "debug_enabled": "Debug-Logs für diese Instanz aktivieren"
+        }
+      },
+      "options": {
+        "title": "Konfigurierbare Optionen",
+        "description": "Alle konfigurierbaren Optionen dieser MC Instanz"
+      }
+    },
+    "error": {
+      "unknown": "Unknown error occurred.",
+      "name": "Name wird zwingend benötigt.",
+      "target_light_entity": "Zu steuernde Entität muss ausgewählt werden."
+    },
+    "abort": {
+      "already_configured": "This entry is already configured."
+    }
+  }
+}
