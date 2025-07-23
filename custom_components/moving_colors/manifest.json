@@ -5,9 +5,6 @@
     "@starwarsfan"
   ],
   "config_flow": true,
-  "dependencies": [
-    "sun"
-  ],
   "documentation": "https://github.com/starwarsfan/moving-colors",
   "integration_type": "device",
   "iot_class": "calculated",
