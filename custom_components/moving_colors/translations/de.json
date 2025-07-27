@@ -35,11 +35,43 @@
         "data": {
           "name": "Instanzname",
           "target_light_entity": "Behang-Entität",
+          "start_value_static": "",
+          "start_value_entity": "",
+          "min_value_static": "",
+          "min_value_entity": "",
+          "max_value_static": "",
+          "max_value_entity": "",
+          "step_value_static": "",
+          "step_value_entity": "",
+          "random_limits_static": "",
+          "random_limits_entity": "",
+          "default_value_static": "",
+          "default_value_entity": "",
+          "default_mode_enabled_static": "",
+          "default_mode_enabled_entity": "",
+          "steps_to_default_static": "",
+          "steps_to_default_entity": "",
           "debug_enabled": "Debug-Modus"
         },
         "data_description": {
           "name": "Eindeutiger Name dieser Moving Colors (MC) Instanz",
           "target_light_entity": "Behang, welcher mit dieser Moving Colors (MC) Instanz gehandhabt werden soll",
+          "start_value_static": "",
+          "start_value_entity": "",
+          "min_value_static": "",
+          "min_value_entity": "",
+          "max_value_static": "",
+          "max_value_entity": "",
+          "step_value_static": "",
+          "step_value_entity": "",
+          "random_limits_static": "",
+          "random_limits_entity": "",
+          "default_value_static": "",
+          "default_value_entity": "",
+          "default_mode_enabled_static": "",
+          "default_mode_enabled_entity": "",
+          "steps_to_default_static": "",
+          "steps_to_default_entity": "",
           "debug_enabled": "Debug-Logs für diese Instanz aktivieren"
         }
       },
@@ -54,7 +86,7 @@
       "target_light_entity": "Zu steuernde Entität muss ausgewählt werden."
     },
     "abort": {
-      "already_configured": "This entry is already configured."
+      "already_configured": "Dieser Eintrag ist bereits konfiguriert."
     }
   }
 }
