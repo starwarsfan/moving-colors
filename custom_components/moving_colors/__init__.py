@@ -3,8 +3,9 @@
 import logging
 import random
 import re
+from collections.abc import Callable
 from datetime import timedelta
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import homeassistant.util.dt as dt_util
 from homeassistant.config_entries import ConfigEntry
@@ -40,15 +41,11 @@ from .const import (
     VERSION,
 )
 
-if TYPE_CHECKING:
-    from collections.abc import Callable
-
 _GLOBAL_DOMAIN_LOGGER = logging.getLogger(DOMAIN)
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.SWITCH, Platform.LIGHT]  # Added Platform.LIGHT for potential light entity creation
+PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.SWITCH]
 
-# Get the schema version from constants
 CURRENT_SCHEMA_VERSION = VERSION
 
 
@@ -201,7 +198,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Unload all platforms
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
-        # Clean up manager instance
+        # Cleanup manager instance
         if entry_id in hass.data[DOMAIN_DATA_MANAGERS]:
             del hass.data[DOMAIN_DATA_MANAGERS][entry_id]
         instance_logger.info("[%s] Unload successful for entry %s.", DOMAIN, entry_id)
@@ -297,6 +294,22 @@ class MovingColorsManager:
         self._current_lower_boundary = self._get_value_from_config_or_entity(MIN_VALUE_STATIC, MIN_VALUE_ENTITY, default_val=0)
         self._current_upper_boundary = self._get_value_from_config_or_entity(MAX_VALUE_STATIC, MAX_VALUE_ENTITY, default_val=255)
 
+        # Callback for sensor updates
+        self._current_value_update_callback: Callable[[int], None] | None = None
+
+    async def async_start(self) -> None:
+        """Start the Moving Colors manager's operations."""
+        self.logger.debug("Calling async_start for MovingColorsManager.")
+        self.async_start_update_task()
+
+    def get_current_value(self) -> int:
+        """Return the current calculated value."""
+        return self._current_value if self._current_value is not None else 0
+
+    def set_current_value_update_callback(self, callback_func: Callable[[int], None]) -> None:
+        """Set the callback function for current value updates."""
+        self._current_value_update_callback = callback_func
+
     def _get_value_from_config_or_entity(self, static_key: str, entity_key: str, default_val: Any) -> Any:
         """Get value from a static or a dynamic config entry."""
         if self._options.get(entity_key):
@@ -323,14 +336,13 @@ class MovingColorsManager:
                 self.logger.warning("Entity '%s' state is not available or unknown. Using static value.", entity_id)
         return self._options.get(static_key, default_val)
 
-    def start_update_task(self) -> None:
+    def async_start_update_task(self) -> None:  # Made async and renamed
         """Start the periodic update task."""
-        # The PHP code mentions an "Oszillator" with 2-3 seconds interval.
-        # Let's use 2 seconds as a default or make it configurable later if needed.
+        # Use 2 seconds as a default for now.
         interval = timedelta(seconds=2)
         self.logger.debug("Starting periodic update task with interval %s.", interval)
         self._update_listener = async_track_time_interval(self.hass, self._async_update_moving_colors_state, interval)
-        self._unsub_callbacks.append(self._update_listener)  # Add to cleanup list
+        self._unsub_callbacks.append(self._update_listener)
 
     def stop_update_task(self) -> None:
         """Stop the periodic update task."""
@@ -343,6 +355,8 @@ class MovingColorsManager:
     async def _async_update_moving_colors_state(self, now: dt_util.dt.datetime) -> None:
         """Calculate the next dimming value and update the light entity."""
         self.logger.debug("Moving Colors update triggered at %s.", now)
+
+        old_current_value = self._current_value  # Store old value to check for changes
 
         # Get current configuration values (refresh if from entity)
         min_value = int(self._get_value_from_config_or_entity(MIN_VALUE_STATIC, MIN_VALUE_ENTITY, 0))
@@ -486,6 +500,10 @@ class MovingColorsManager:
         # Ensure the final value is within 0-255
         self._current_value = max(0, min(255, self._current_value))
 
+        # Notify sensor of updated value if it exists
+        if self._current_value_update_callback and self._current_value != old_current_value:
+            self.hass.async_add_job(self._current_value_update_callback, self._current_value)
+
         # Update the light entity in Home Assistant
         # PHP: setLogicLinkAusgang($id, 1, $currentValue)
         target_entity = self._target_light_entity_id
@@ -495,7 +513,7 @@ class MovingColorsManager:
             # You might want to add more robust error handling or check capabilities.
             service_data = {"entity_id": target_entity, "brightness": self._current_value}
             await self.hass.services.async_call("light", "turn_on", service_data)
-            self.logger.debug("Set light {target_entity} to brightness %s", self._current_value)
+            self.logger.debug("Set light %s to brightness %s", target_entity, self._current_value)
         else:
             self.logger.error("No target light entity ID configured for Moving Colors instance.")
 
