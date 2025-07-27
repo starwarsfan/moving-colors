@@ -202,7 +202,7 @@ class MovingColorsOptionsFlowHandler(config_entries.OptionsFlow):
                         errors["base"] = "unknown_error"
 
         return self.async_show_form(
-            step_id="dawn_settings",
+            step_id="user",
             data_schema=self.add_suggested_values_to_schema(data_schema, self.options_data),
             errors=errors,
         )
