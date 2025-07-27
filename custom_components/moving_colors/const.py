@@ -69,22 +69,22 @@ STEPS_TO_DEFAULT_ENTITY = "steps_to_default_entity"
 CFG_OPTIONS = vol.Schema(
     {
         # Start value
-        vol.Optional(START_VALUE_STATIC, default=True): selector.NumberSelector(
+        vol.Optional(START_VALUE_STATIC, default=125): selector.NumberSelector(
             selector.NumberSelectorConfig(min=0, max=256, step=1, mode=selector.NumberSelectorMode.BOX)
         ),
         vol.Optional(START_VALUE_ENTITY): selector.EntitySelector(selector.EntitySelectorConfig(domain=["sensor", "input_number"])),
         # Minimal value
-        vol.Optional(MIN_VALUE_STATIC, default=True): selector.NumberSelector(
+        vol.Optional(MIN_VALUE_STATIC, default=0): selector.NumberSelector(
             selector.NumberSelectorConfig(min=0, max=255, step=1, mode=selector.NumberSelectorMode.BOX)
         ),
         vol.Optional(MIN_VALUE_ENTITY): selector.EntitySelector(selector.EntitySelectorConfig(domain=["sensor", "input_number"])),
         # Maximal value
-        vol.Optional(MAX_VALUE_STATIC, default=True): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=1, max=256, step=1, mode=selector.NumberSelectorMode.BOX)
+        vol.Optional(MAX_VALUE_STATIC, default=255): selector.NumberSelector(
+            selector.NumberSelectorConfig(min=0, max=255, step=1, mode=selector.NumberSelectorMode.BOX)
         ),
         vol.Optional(MAX_VALUE_ENTITY): selector.EntitySelector(selector.EntitySelectorConfig(domain=["sensor", "input_number"])),
         # Stepping
-        vol.Optional(STEP_VALUE_STATIC, default=True): selector.NumberSelector(
+        vol.Optional(STEP_VALUE_STATIC, default=3): selector.NumberSelector(
             selector.NumberSelectorConfig(min=0, max=100, step=1, mode=selector.NumberSelectorMode.BOX)
         ),
         vol.Optional(STEP_VALUE_ENTITY): selector.EntitySelector(selector.EntitySelectorConfig(domain=["sensor", "input_number"])),
@@ -92,7 +92,7 @@ CFG_OPTIONS = vol.Schema(
         vol.Optional(RANDOM_LIMITS_STATIC, default=True): selector.BooleanSelector(),
         vol.Optional(RANDOM_LIMITS_ENTITY): selector.EntitySelector(selector.EntitySelectorConfig(domain=["input_boolean", "binary_sensor"])),
         # Default value
-        vol.Optional(DEFAULT_VALUE_STATIC, default=True): selector.NumberSelector(
+        vol.Optional(DEFAULT_VALUE_STATIC, default=125): selector.NumberSelector(
             selector.NumberSelectorConfig(min=0, max=256, step=1, mode=selector.NumberSelectorMode.BOX)
         ),
         vol.Optional(DEFAULT_VALUE_ENTITY): selector.EntitySelector(selector.EntitySelectorConfig(domain=["sensor", "input_number"])),
@@ -100,7 +100,7 @@ CFG_OPTIONS = vol.Schema(
         vol.Optional(DEFAULT_MODE_ENABLED_STATIC, default=True): selector.BooleanSelector(),
         vol.Optional(DEFAULT_MODE_ENABLED_ENTITY): selector.EntitySelector(selector.EntitySelectorConfig(domain=["input_boolean", "binary_sensor"])),
         # Steps to default value
-        vol.Optional(STEPS_TO_DEFAULT_STATIC, default=True): selector.NumberSelector(
+        vol.Optional(STEPS_TO_DEFAULT_STATIC, default=5): selector.NumberSelector(
             selector.NumberSelectorConfig(min=0, max=100, step=1, mode=selector.NumberSelectorMode.BOX)
         ),
         vol.Optional(STEPS_TO_DEFAULT_ENTITY): selector.EntitySelector(selector.EntitySelectorConfig(domain=["sensor", "input_number"])),
