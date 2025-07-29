@@ -19,25 +19,25 @@ from homeassistant.helpers.typing import ConfigType
 
 from .const import (
     DEBUG_ENABLED,
-    DEFAULT_MODE_ENABLED_ENTITY,
-    DEFAULT_MODE_ENABLED_STATIC,
-    DEFAULT_VALUE_ENTITY,
-    DEFAULT_VALUE_STATIC,
     DOMAIN,
     DOMAIN_DATA_MANAGERS,
-    MAX_VALUE_ENTITY,
-    MAX_VALUE_STATIC,
     MC_CONF_NAME,
-    MIN_VALUE_ENTITY,
-    MIN_VALUE_STATIC,
-    RANDOM_LIMITS_ENTITY,
-    RANDOM_LIMITS_STATIC,
-    START_VALUE_ENTITY,
-    START_VALUE_STATIC,
-    STEP_VALUE_ENTITY,
-    STEP_VALUE_STATIC,
-    STEPS_TO_DEFAULT_ENTITY,
-    STEPS_TO_DEFAULT_STATIC,
+    MC_DEFAULT_MODE_ENABLED_ENTITY,
+    MC_DEFAULT_MODE_ENABLED_STATIC,
+    MC_DEFAULT_VALUE_ENTITY,
+    MC_DEFAULT_VALUE_STATIC,
+    MC_MAX_VALUE_ENTITY,
+    MC_MAX_VALUE_STATIC,
+    MC_MIN_VALUE_ENTITY,
+    MC_MIN_VALUE_STATIC,
+    MC_RANDOM_LIMITS_ENTITY,
+    MC_RANDOM_LIMITS_STATIC,
+    MC_START_VALUE_ENTITY,
+    MC_START_VALUE_STATIC,
+    MC_STEP_VALUE_ENTITY,
+    MC_STEP_VALUE_STATIC,
+    MC_STEPS_TO_DEFAULT_ENTITY,
+    MC_STEPS_TO_DEFAULT_STATIC,
     TARGET_LIGHT_ENTITY_ID,
     VERSION,
 )
@@ -269,31 +269,33 @@ class MovingColorsManager:
 
         # Pre-fetch initial static values from config
         self._debug_enabled_static = self._options.get(DEBUG_ENABLED, False)
-        self._start_value_static = self._options.get(START_VALUE_STATIC, 0)
-        self._min_value_static = self._options.get(MIN_VALUE_STATIC, 0)
-        self._max_value_static = self._options.get(MAX_VALUE_STATIC, 255)
-        self._step_value_static = self._options.get(STEP_VALUE_STATIC, 2)
-        self._random_limits_static = self._options.get(RANDOM_LIMITS_STATIC, True)
-        self._default_value_static = self._options.get(DEFAULT_VALUE_STATIC, 0)  # PHP default was 0
-        self._default_mode_enabled_static = self._options.get(DEFAULT_MODE_ENABLED_STATIC, False)  # PHP default was 0 (false)
-        self._steps_to_default_static = self._options.get(STEPS_TO_DEFAULT_STATIC, 3)  # PHP default was 3
+        self._start_value_static = self._options.get(MC_START_VALUE_STATIC, 125)
+        self._min_value_static = self._options.get(MC_MIN_VALUE_STATIC, 0)
+        self._max_value_static = self._options.get(MC_MAX_VALUE_STATIC, 255)
+        self._step_value_static = self._options.get(MC_STEP_VALUE_STATIC, 2)
+        self._random_limits_static = self._options.get(MC_RANDOM_LIMITS_STATIC, True)
+        self._default_value_static = self._options.get(MC_DEFAULT_VALUE_STATIC, 0)
+        self._default_mode_enabled_static = self._options.get(MC_DEFAULT_MODE_ENABLED_STATIC, False)
+        self._steps_to_default_static = self._options.get(MC_STEPS_TO_DEFAULT_STATIC, 3)
 
         # Store entity IDs for dynamic values
-        self._start_value_entity = self._options.get(START_VALUE_ENTITY)
-        self._min_value_entity = self._options.get(MIN_VALUE_ENTITY)
-        self._max_value_entity = self._options.get(MAX_VALUE_ENTITY)
-        self._step_value_entity = self._options.get(STEP_VALUE_ENTITY)
-        self._random_limits_entity = self._options.get(RANDOM_LIMITS_ENTITY)
-        self._default_value_entity = self._options.get(DEFAULT_VALUE_ENTITY)
-        self._default_mode_enabled_entity = self._options.get(DEFAULT_MODE_ENABLED_ENTITY)
-        self._steps_to_default_entity = self._options.get(STEPS_TO_DEFAULT_ENTITY)
+        self._start_value_entity = self._options.get(MC_START_VALUE_ENTITY)
+        self._min_value_entity = self._options.get(MC_MIN_VALUE_ENTITY)
+        self._max_value_entity = self._options.get(MC_MAX_VALUE_ENTITY)
+        self._step_value_entity = self._options.get(MC_STEP_VALUE_ENTITY)
+        self._random_limits_entity = self._options.get(MC_RANDOM_LIMITS_ENTITY)
+        self._default_value_entity = self._options.get(MC_DEFAULT_VALUE_ENTITY)
+        self._default_mode_enabled_entity = self._options.get(MC_DEFAULT_MODE_ENABLED_ENTITY)
+        self._steps_to_default_entity = self._options.get(MC_STEPS_TO_DEFAULT_ENTITY)
 
         # Initialize internal state based on start value
-        self._current_value = self._get_value_from_config_or_entity(START_VALUE_STATIC, START_VALUE_ENTITY, default_val=0)
+        self._current_value = self._get_value_from_config_or_entity(MC_START_VALUE_STATIC, MC_START_VALUE_ENTITY, default_val=125)
         self._count_up = True  # Initial direction
-        self._remaining_steps_to_default = self._get_value_from_config_or_entity(STEPS_TO_DEFAULT_STATIC, STEPS_TO_DEFAULT_ENTITY, default_val=3)
-        self._current_lower_boundary = self._get_value_from_config_or_entity(MIN_VALUE_STATIC, MIN_VALUE_ENTITY, default_val=0)
-        self._current_upper_boundary = self._get_value_from_config_or_entity(MAX_VALUE_STATIC, MAX_VALUE_ENTITY, default_val=255)
+        self._remaining_steps_to_default = self._get_value_from_config_or_entity(
+            MC_STEPS_TO_DEFAULT_STATIC, MC_STEPS_TO_DEFAULT_ENTITY, default_val=3
+        )
+        self._current_lower_boundary = self._get_value_from_config_or_entity(MC_MIN_VALUE_STATIC, MC_MIN_VALUE_ENTITY, default_val=0)
+        self._current_upper_boundary = self._get_value_from_config_or_entity(MC_MAX_VALUE_STATIC, MC_MAX_VALUE_ENTITY, default_val=255)
 
         # Callback for sensor updates
         self._current_value_update_callback: Callable[[int], None] | None = None
@@ -320,16 +322,16 @@ class MovingColorsManager:
                 try:
                     # For numerical values, convert state to float/int
                     if static_key in [
-                        START_VALUE_STATIC,
-                        MIN_VALUE_STATIC,
-                        MAX_VALUE_STATIC,
-                        STEP_VALUE_STATIC,
-                        DEFAULT_VALUE_STATIC,
-                        STEPS_TO_DEFAULT_STATIC,
+                        MC_START_VALUE_STATIC,
+                        MC_MIN_VALUE_STATIC,
+                        MC_MAX_VALUE_STATIC,
+                        MC_STEP_VALUE_STATIC,
+                        MC_DEFAULT_VALUE_STATIC,
+                        MC_STEPS_TO_DEFAULT_STATIC,
                     ]:
                         return float(state.state)  # Use float for calculations, convert to int at the end
                     # For boolean values
-                    if static_key in [RANDOM_LIMITS_STATIC, DEBUG_ENABLED, DEFAULT_MODE_ENABLED_STATIC]:
+                    if static_key in [MC_RANDOM_LIMITS_STATIC, DEBUG_ENABLED, MC_DEFAULT_MODE_ENABLED_STATIC]:
                         return state.state.lower() == "on" or state.state.lower() == "true" or state.state == "1"
                 except ValueError:
                     self.logger.warning("Could not convert state '%s' for entity '%s' to required type. Using static value.", state.state, entity_id)
@@ -360,13 +362,13 @@ class MovingColorsManager:
         old_current_value = self._current_value  # Store old value to check for changes
 
         # Get current configuration values (refresh if from entity)
-        min_value = int(self._get_value_from_config_or_entity(MIN_VALUE_STATIC, MIN_VALUE_ENTITY, 0))
-        max_value = int(self._get_value_from_config_or_entity(MAX_VALUE_STATIC, MAX_VALUE_ENTITY, 255))
-        stepping = int(self._get_value_from_config_or_entity(STEP_VALUE_STATIC, STEP_VALUE_ENTITY, 2))
-        use_random = self._get_value_from_config_or_entity(RANDOM_LIMITS_STATIC, RANDOM_LIMITS_ENTITY, True)
-        default_value = int(self._get_value_from_config_or_entity(DEFAULT_VALUE_STATIC, DEFAULT_VALUE_ENTITY, 0))
-        default_active = self._get_value_from_config_or_entity(DEFAULT_MODE_ENABLED_STATIC, DEFAULT_MODE_ENABLED_ENTITY, False)
-        steps_to_default = int(self._get_value_from_config_or_entity(STEPS_TO_DEFAULT_STATIC, STEPS_TO_DEFAULT_ENTITY, 3))
+        min_value = int(self._get_value_from_config_or_entity(MC_MIN_VALUE_STATIC, MC_MIN_VALUE_ENTITY, 0))
+        max_value = int(self._get_value_from_config_or_entity(MC_MAX_VALUE_STATIC, MC_MAX_VALUE_ENTITY, 255))
+        stepping = int(self._get_value_from_config_or_entity(MC_STEP_VALUE_STATIC, MC_STEP_VALUE_ENTITY, 2))
+        use_random = self._get_value_from_config_or_entity(MC_RANDOM_LIMITS_STATIC, MC_RANDOM_LIMITS_ENTITY, True)
+        default_value = int(self._get_value_from_config_or_entity(MC_DEFAULT_VALUE_STATIC, MC_DEFAULT_VALUE_ENTITY, 0))
+        default_active = self._get_value_from_config_or_entity(MC_DEFAULT_MODE_ENABLED_STATIC, MC_DEFAULT_MODE_ENABLED_ENTITY, False)
+        steps_to_default = int(self._get_value_from_config_or_entity(MC_STEPS_TO_DEFAULT_STATIC, MC_STEPS_TO_DEFAULT_ENTITY, 3))
 
         # PHP's validation logic from LB_LBSID_validateInput
         # In Python, Voluptuous handles most of this, but some runtime checks or adjustments are still useful
@@ -403,7 +405,7 @@ class MovingColorsManager:
 
         # Check if current_value is initialized. If not, use start value.
         if self._current_value is None:
-            self._current_value = self._get_value_from_config_or_entity(START_VALUE_STATIC, START_VALUE_ENTITY, 0)
+            self._current_value = self._get_value_from_config_or_entity(MC_START_VALUE_STATIC, MC_START_VALUE_ENTITY, 0)
             self.logger.debug("Initialized _current_value to %s", self._current_value)
 
         # Default control is active
@@ -508,18 +510,16 @@ class MovingColorsManager:
             else:
                 self._current_value_update_callback(self._current_value)
 
-        # Update the light entity in Home Assistant
-        # PHP: setLogicLinkAusgang($id, 1, $currentValue)
-        target_entity = self._target_light_entity_id
-        if target_entity:
-            # Home Assistant brightness is 0-255 for lights
-            # We assume the target entity is a light that supports brightness.
-            # You might want to add more robust error handling or check capabilities.
-            service_data = {"entity_id": target_entity, "brightness": self._current_value}
-            await self.hass.services.async_call("light", "turn_on", service_data)
-            self.logger.debug("Set light %s to brightness %s", target_entity, self._current_value)
-        else:
-            self.logger.error("No target light entity ID configured for Moving Colors instance.")
+        for target_entity in self._target_light_entity_id:
+            if target_entity:
+                self.logger.debug("Set light %s to brightness %s", target_entity, self._current_value)
+                # Home Assistant brightness is 0-255 for lights
+                # We assume the target entity is a light that supports brightness.
+                # You might want to add more robust error handling or check capabilities.
+                service_data = {"entity_id": target_entity, "brightness": self._current_value}
+                await self.hass.services.async_call("light", "turn_on", service_data)
+            else:
+                self.logger.error("No target light entity ID configured for Moving Colors instance.")
 
 
 # Helper for dynamic log output
