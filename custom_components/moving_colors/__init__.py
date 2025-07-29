@@ -1,5 +1,6 @@
 """Integration for Moving Colors."""
 
+import inspect
 import logging
 import random
 import re
@@ -502,7 +503,10 @@ class MovingColorsManager:
 
         # Notify sensor of updated value if it exists
         if self._current_value_update_callback and self._current_value != old_current_value:
-            self.hass.async_add_job(self._current_value_update_callback, self._current_value)
+            if inspect.iscoroutinefunction(self._current_value_update_callback):
+                self.hass.async_create_task(self._current_value_update_callback(self._current_value))
+            else:
+                self._current_value_update_callback(self._current_value)
 
         # Update the light entity in Home Assistant
         # PHP: setLogicLinkAusgang($id, 1, $currentValue)
