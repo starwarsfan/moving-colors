@@ -3,19 +3,16 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any  # Import TYPE_CHECKING
+from typing import Any
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry  # noqa: TC002
-from homeassistant.core import HomeAssistant  # noqa: TC002
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback  # noqa: TC002
 from homeassistant.helpers.restore_state import RestoreEntity
 
-# Only import MovingColorsManager for type checking
-if TYPE_CHECKING:
-    from . import MovingColorsManager
-
-from .const import DOMAIN, DOMAIN_DATA_MANAGERS
+from .const import DEBUG_ENABLED, DOMAIN, MC_CONF_NAME, MC_ENABLED_STATIC
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -26,46 +23,95 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the switch platform."""
-    manager: MovingColorsManager = hass.data[DOMAIN_DATA_MANAGERS][config_entry.entry_id]
-    _LOGGER.debug("[%s] Setting up switch platform.", manager.name)
-    async_add_entities([MovingColorsManagerSwitch(manager)])
+    instance_name = config_entry.data.get(MC_CONF_NAME, DOMAIN)
+
+    entities = [
+        MovingColorsBooleanSwitch(
+            hass, config_entry, key=DEBUG_ENABLED, translation_key=DEBUG_ENABLED, instance_name=instance_name, icon="mdi:developer-board"
+        ),
+        MovingColorsBooleanSwitch(
+            hass,
+            config_entry,
+            key=MC_ENABLED_STATIC,
+            translation_key=MC_ENABLED_STATIC,
+            instance_name=instance_name,
+        ),
+    ]
+
+    # Add all the entities to Home Assistant
+    async_add_entities(entities)
 
 
-class MovingColorsManagerSwitch(SwitchEntity, RestoreEntity):
+class MovingColorsBooleanSwitch(SwitchEntity, RestoreEntity):
     """Defines a Moving Colors switch."""
 
     _attr_has_entity_name = True
     _attr_name = "Moving Colors"
 
-    def __init__(self, manager: MovingColorsManager) -> None:
+    def __init__(
+        self, hass: HomeAssistant, config_entry: ConfigEntry, key: str, translation_key: str, instance_name: str, icon: str | None = None
+    ) -> None:
         """Initialize the switch."""
-        self._manager = manager
-        self._attr_unique_id = f"{manager.entry_id}_enabled"
-        self._attr_is_on = False  # Assuming it starts not by default
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, manager.entry_id)},
-            "name": manager.name,
-            "manufacturer": "Yves Schumann",
-            "model": "Moving Colors",
-        }
+        self.hass = hass
+        self._config_entry = config_entry
+        self._key = key
 
-    async def async_added_to_hass(self) -> None:
-        """Register callbacks."""
-        await super().async_added_to_hass()
-        state = await self.async_get_last_state()
-        if state is not None:
-            self._attr_is_on = state.state == "on"
+        self._attr_translation_key = translation_key
+        self._attr_has_entity_name = True
+
+        self._attr_unique_id = f"{config_entry.entry_id}_{key}"
+
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, config_entry.entry_id)},
+            name=instance_name,
+            manufacturer="Yves Schumann",
+            model="Moving Colors",
+            # entry_type=DeviceInfo.EntryType.SERVICE,
+        )
+        self._attr_extra_state_attributes = {}  # For additional attributes if required
+
+        if icon:
+            self._attr_icon = icon
 
     async def async_turn_on(self, **kwargs: Any) -> None:
-        """Turn on the Moving Colors logic."""
-        if not self._attr_is_on:
-            self._manager.async_start_update_task()
-            self._attr_is_on = True
-            self.async_write_ha_state()
+        """Switch the switch on."""
+        # Await the asynchronous _set_option call
+        await self._set_option(True)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
-        """Turn off the Moving Colors logic."""
-        if self._attr_is_on:
-            self._manager.stop_update_task()
-            self._attr_is_on = False
-            self.async_write_ha_state()
+        """Switch the switch off."""
+        # Await the asynchronous _set_option call
+        await self._set_option(False)
+
+    async def _set_option(self, value: bool) -> None:
+        """Update a config option within ConfigEntry."""
+        _LOGGER.debug("[%s] Setting option '%s' to %s for entry '%s'", DOMAIN, self._key, value, self._config_entry.entry_id)
+        current_options = self._config_entry.options.copy()
+        current_options[self._key] = value
+
+        # Update config entry by triggering listeners
+        self.hass.config_entries.async_update_entry(self._config_entry, options=current_options)
+
+    @callback
+    async def _handle_options_update(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
+        """Handle option updates from within the config entry."""
+        if entry.entry_id == self._config_entry.entry_id:
+            # Get the newest value from the option
+            current_value = self._config_entry.options.get(self._key, False)
+            if self.is_on != current_value:
+                self.async_write_ha_state()
+
+    async def async_added_to_hass(self) -> None:
+        """Register callbacks with entity registration at HA."""
+        await super().async_added_to_hass()
+
+        # Ensure the entity is following changes at the config_entry. Important if changed within
+        # the ConfigFlow and UI should \"see\" that change too.
+        self._config_entry.async_on_unload(self._config_entry.add_update_listener(self._handle_options_update))
+
+        # Restore last state after Home Assistant restart.
+        last_state = await self.async_get_last_state()
+        if last_state:
+            _LOGGER.debug("[%s] Restoring last state for %s: %s", DOMAIN, self.name, last_state.state)
+            # The `is_on` property is already reading the value from `_config_entry.options`.
+            # If the key is not within `options` the default value (False) is used.
