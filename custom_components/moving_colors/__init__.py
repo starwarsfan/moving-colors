@@ -14,7 +14,7 @@ from homeassistant.const import (
     Platform,
 )
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.event import async_track_time_interval
+from homeassistant.helpers.event import async_track_state_change, async_track_time_interval
 from homeassistant.helpers.typing import ConfigType
 
 from .const import (
@@ -26,6 +26,8 @@ from .const import (
     MC_DEFAULT_MODE_ENABLED_STATIC,
     MC_DEFAULT_VALUE_ENTITY,
     MC_DEFAULT_VALUE_STATIC,
+    MC_ENABLED_ENTITY,
+    MC_ENABLED_STATIC,
     MC_MAX_VALUE_ENTITY,
     MC_MAX_VALUE_STATIC,
     MC_MIN_VALUE_ENTITY,
@@ -303,7 +305,9 @@ class MovingColorsManager:
     async def async_start(self) -> None:
         """Start the Moving Colors manager's operations."""
         self.logger.debug("Calling async_start for MovingColorsManager.")
-        self.async_start_update_task()
+        self._setup_enabled_listener()
+        if self.is_enabled():
+            self.async_start_update_task()
 
     async def async_stop(self) -> None:
         """Stop the Moving Colors manager's operations."""
@@ -313,8 +317,40 @@ class MovingColorsManager:
             unsub_callback()
         self._unsub_callbacks.clear()
         self.logger.debug("Listeners unregistered.")
-
         self.logger.debug("Manager lifecycle stopped.")
+
+    def _setup_enabled_listener(self) -> None:
+        """Set up listeners for enable/disable changes."""
+        # Listen for entity state changes
+        entity_id = self._options.get(MC_ENABLED_ENTITY)
+        if entity_id:
+            unsub = async_track_state_change(
+                self.hass,
+                entity_id,
+                self._handle_enabled_state_change,
+            )
+            self._unsub_callbacks.append(unsub)
+
+    @callback
+    def _handle_enabled_state_change(self, entity_id, old_state, new_state) -> None:
+        """Handle changes to the enabled entity."""
+        if self.is_enabled():
+            self.logger.debug("Enabled state changed to ON, starting update task.")
+            self.async_start_update_task()
+        else:
+            self.logger.debug("Enabled state changed to OFF, stopping update task.")
+            self.stop_update_task()
+
+    def is_enabled(self) -> bool:
+        """Return True if Moving Colors should be active."""
+        # Prefer entity if set
+        if self._options.get(MC_ENABLED_ENTITY):
+            entity_id = self._options[MC_ENABLED_ENTITY]
+            state = self.hass.states.get(entity_id)
+            if state and state.state not in ["unavailable", "unknown"]:
+                return state.state.lower() in ["on", "true", "1"]
+        # Fallback to the static option
+        return self._options.get(MC_ENABLED_STATIC, True)
 
     def get_current_value(self) -> int:
         """Return the current calculated value."""
@@ -361,6 +397,9 @@ class MovingColorsManager:
     def async_start_update_task(self) -> None:  # Made async and renamed
         """Start the periodic update task."""
         # Use 2 seconds as a default for now.
+        if hasattr(self, "_update_listener") and self._update_listener:
+            # Already running
+            return
         interval = timedelta(seconds=2)
         self.logger.debug("Starting periodic update task with interval %s.", interval)
         self._update_listener = async_track_time_interval(self.hass, self._async_update_moving_colors_state, interval)
@@ -369,14 +408,18 @@ class MovingColorsManager:
     def stop_update_task(self) -> None:
         """Stop the periodic update task."""
         self.logger.debug("Stopping periodic update task.")
-        for unsub in self._unsub_callbacks:
-            unsub()
-        self._unsub_callbacks = []
+        if hasattr(self, "_update_listener") and self._update_listener:
+            self._update_listener()
+            self._update_listener = None
 
     @callback
     async def _async_update_moving_colors_state(self, now: dt_util.dt.datetime) -> None:
         """Calculate the next dimming value and update the light entity."""
         self.logger.debug("Moving Colors update triggered at %s.", now)
+
+        if not self.is_enabled():
+            self.logger.debug("Moving Colors is disabled, skipping update.")
+            return
 
         old_current_value = self._current_value  # Store old value to check for changes
 
