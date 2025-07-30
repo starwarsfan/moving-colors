@@ -165,7 +165,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         _LOGGER.error("[%s] No target light entity ID found in config for entry %s.", manager_name, entry.entry_id)
         return False
 
-    # Hand over the combined configuration dictionary to the ShadowControlManager
+    # Hand over the combined configuration dictionary to the MovingColorsManager
     manager = MovingColorsManager(hass, config_data, entry.entry_id, instance_specific_logger)
 
     # Store manager within 'hass.data' to let sensors and other components access it.
@@ -478,7 +478,7 @@ class MovingColorsManager:
                 self._current_value = min(self._current_value, self._current_upper_boundary)
             elif self._count_up and self._current_value >= self._current_upper_boundary:
                 # Reached upper boundary, so decrease dimm value, change dimm direction
-                # and determine random based next lower boundary
+                # and determine random-based next lower boundary
                 self._current_value -= stepping
                 self._count_up = False
                 # If the random-based boundary was deactivated, skip computation of the next value
@@ -496,7 +496,7 @@ class MovingColorsManager:
                 self._current_value = max(self._current_value, self._current_lower_boundary)
             elif not self._count_up and self._current_value <= self._current_lower_boundary:
                 # Reached the lower boundary, so increase dimm value, change dimm direction
-                # and determine random based next upper boundary
+                # and determine random-based next upper boundary
                 self._current_value += stepping
                 self._count_up = True
                 # If the random-based boundary was deactivated, skip computation of the next value
