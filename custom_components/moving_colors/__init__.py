@@ -64,37 +64,22 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
     if DOMAIN in config:
         for entry_config in config[DOMAIN]:
-            # Import YAML configuration into ConfigEntry, separated the same way as
-            # the UI does it (name in data, all other in options).
-            name = entry_config.get(MC_CONF_NAME)
-            target_light_entity_id = entry_config.get(TARGET_LIGHT_ENTITY_ID)
+            # Import YAML configuration into ConfigEntry, separated the same way than
+            # on the ConfigFlow: Name in 'data', rest in 'options'
 
-            if not name or not target_light_entity_id:
-                _LOGGER.error(
-                    "[%s] Invalid YAML configuration for a Moving Colors instance. Both 'name' and 'target_light_entity_id' are required. Skipping.",
-                    DOMAIN,
-                )
-                continue
+            # Remove name from YAML configuration
+            instance_name = entry_config.pop(MC_CONF_NAME)
 
-            # Check if there is already an instance to prevent duplicated entries
-            # The name is the key
-            if name:
-                for entry in hass.config_entries.async_entries(DOMAIN):
-                    if entry.data.get(MC_CONF_NAME) == name:
-                        _LOGGER.warning(
-                            "[%s] Attempted to import duplicate Moving Colors instance '%s' from YAML. Skipping.",
-                            DOMAIN,
-                            name,
-                        )
-                        continue
-
-            # Create a new config entry
             hass.async_create_task(
                 hass.config_entries.flow.async_init(
                     DOMAIN,
                     context={"source": "import"},
-                    data={MC_CONF_NAME: name},  # Name goes into data
-                    options={k: v for k, v in entry_config.items() if k != MC_CONF_NAME},  # Other options go into options
+                    data={
+                        MC_CONF_NAME: instance_name,  # Name into the 'data' section
+                        # Pass the dictionary which contains the options for the
+                        # ConfigEntry. YAML content without a name will be options
+                        **entry_config,
+                    },
                 )
             )
 
@@ -102,6 +87,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     return True
 
 
+# Entry point for setup using ConfigEntry (via ConfigFlow)
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Moving Colors from a config entry."""
     _LOGGER.debug("[%s] Setting up Moving Colors from config entry: %s: data=%s, options=%s", DOMAIN, entry.entry_id, entry.data, entry.options)
@@ -180,12 +166,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Load platforms (like sensors)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
+    # Add listeners for update of input values and integration trigger
+    entry.async_on_unload(entry.add_update_listener(_async_update_listener))
+
     _LOGGER.info("[%s] Integration '%s' successfully set up from config entry.", DOMAIN, manager_name)
     return True
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
+    _LOGGER.debug("[%s] Unloading Moving Colors integration for entry: %s", DOMAIN, entry.entry_id)
+
     entry_id = entry.entry_id
     instance_name = entry.data.get(MC_CONF_NAME)
     instance_logger = _GLOBAL_DOMAIN_LOGGER.getChild(f"{DOMAIN}.{instance_name or entry_id}")
@@ -196,15 +187,21 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if manager:
         manager.stop_update_task()
 
-    # Unload all platforms
+    # Unload platforms
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+
+    if not hass.data.get(DOMAIN_DATA_MANAGERS) or len(hass.data.get(DOMAIN_DATA_MANAGERS)) == 1:  # Check if this is the last entry
+        hass.services.async_remove(DOMAIN)
+
     if unload_ok:
-        # Cleanup manager instance
-        if entry_id in hass.data[DOMAIN_DATA_MANAGERS]:
-            del hass.data[DOMAIN_DATA_MANAGERS][entry_id]
-        instance_logger.info("[%s] Unload successful for entry %s.", DOMAIN, entry_id)
+        # Stop manager instance
+        manager: MovingColorsManager = hass.data[DOMAIN_DATA_MANAGERS].pop(entry.entry_id, None)
+        if manager:
+            await manager.async_stop()
+
+        _LOGGER.info("[%s] Shadow Control integration for entry %s successfully unloaded.", DOMAIN, entry.entry_id)
     else:
-        instance_logger.warning("[%s] Unload failed for entry %s.", DOMAIN, entry_id)
+        _LOGGER.error("[%s] Failed to unload platforms for entry %s.", DOMAIN, entry.entry_id)
 
     return unload_ok
 
@@ -227,6 +224,12 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
 
     _LOGGER.error("[%s] Unknown config entry version %s for migration. This should not happen.", DOMAIN, config_entry.version)
     return False
+
+
+async def _async_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Handle options update. Will be called if the user modifies the configuration using the OptionsFlow."""
+    _LOGGER.debug("[%s] Options update listener triggered for entry %s.", DOMAIN, entry.entry_id)
+    await hass.config_entries.async_reload(entry.entry_id)
 
 
 class MovingColorsManager:
