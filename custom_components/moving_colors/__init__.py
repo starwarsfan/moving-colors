@@ -22,26 +22,9 @@ from .const import (
     DOMAIN,
     DOMAIN_DATA_MANAGERS,
     MC_CONF_NAME,
-    MC_DEFAULT_MODE_ENABLED_ENTITY,
-    MC_DEFAULT_MODE_ENABLED_STATIC,
-    MC_DEFAULT_VALUE_ENTITY,
-    MC_DEFAULT_VALUE_STATIC,
-    MC_ENABLED_ENTITY,
-    MC_ENABLED_STATIC,
-    MC_MAX_VALUE_ENTITY,
-    MC_MAX_VALUE_STATIC,
-    MC_MIN_VALUE_ENTITY,
-    MC_MIN_VALUE_STATIC,
-    MC_RANDOM_LIMITS_ENTITY,
-    MC_RANDOM_LIMITS_STATIC,
-    MC_START_VALUE_ENTITY,
-    MC_START_VALUE_STATIC,
-    MC_STEP_VALUE_ENTITY,
-    MC_STEP_VALUE_STATIC,
-    MC_STEPS_TO_DEFAULT_ENTITY,
-    MC_STEPS_TO_DEFAULT_STATIC,
     TARGET_LIGHT_ENTITY_ID,
     VERSION,
+    MovingColorsConfig,
 )
 
 _GLOBAL_DOMAIN_LOGGER = logging.getLogger(DOMAIN)
@@ -271,33 +254,39 @@ class MovingColorsManager:
 
         # Pre-fetch initial static values from config
         self._debug_enabled_static = self._options.get(DEBUG_ENABLED, False)
-        self._start_value_static = self._options.get(MC_START_VALUE_STATIC, 125)
-        self._min_value_static = self._options.get(MC_MIN_VALUE_STATIC, 0)
-        self._max_value_static = self._options.get(MC_MAX_VALUE_STATIC, 255)
-        self._step_value_static = self._options.get(MC_STEP_VALUE_STATIC, 2)
-        self._random_limits_static = self._options.get(MC_RANDOM_LIMITS_STATIC, True)
-        self._default_value_static = self._options.get(MC_DEFAULT_VALUE_STATIC, 0)
-        self._default_mode_enabled_static = self._options.get(MC_DEFAULT_MODE_ENABLED_STATIC, False)
-        self._steps_to_default_static = self._options.get(MC_STEPS_TO_DEFAULT_STATIC, 3)
+        self._start_value_static = self._options.get(MovingColorsConfig.START_VALUE_STATIC.value, 125)
+        self._min_value_static = self._options.get(MovingColorsConfig.MIN_VALUE_STATIC.value, 0)
+        self._max_value_static = self._options.get(MovingColorsConfig.MAX_VALUE_STATIC.value, 255)
+        self._step_value_static = self._options.get(MovingColorsConfig.STEP_VALUE_STATIC.value, 2)
+        self._random_limits_static = self._options.get(MovingColorsConfig.RANDOM_LIMITS_STATIC.value, True)
+        self._default_value_static = self._options.get(MovingColorsConfig.DEFAULT_VALUE_STATIC.value, 0)
+        self._default_mode_enabled_static = self._options.get(MovingColorsConfig.DEFAULT_MODE_ENABLED_STATIC.value, False)
+        self._steps_to_default_static = self._options.get(MovingColorsConfig.STEPS_TO_DEFAULT_STATIC.value, 3)
 
         # Store entity IDs for dynamic values
-        self._start_value_entity = self._options.get(MC_START_VALUE_ENTITY)
-        self._min_value_entity = self._options.get(MC_MIN_VALUE_ENTITY)
-        self._max_value_entity = self._options.get(MC_MAX_VALUE_ENTITY)
-        self._step_value_entity = self._options.get(MC_STEP_VALUE_ENTITY)
-        self._random_limits_entity = self._options.get(MC_RANDOM_LIMITS_ENTITY)
-        self._default_value_entity = self._options.get(MC_DEFAULT_VALUE_ENTITY)
-        self._default_mode_enabled_entity = self._options.get(MC_DEFAULT_MODE_ENABLED_ENTITY)
-        self._steps_to_default_entity = self._options.get(MC_STEPS_TO_DEFAULT_ENTITY)
+        self._start_value_entity = self._options.get(MovingColorsConfig.START_VALUE_ENTITY.value)
+        self._min_value_entity = self._options.get(MovingColorsConfig.MIN_VALUE_ENTITY.value)
+        self._max_value_entity = self._options.get(MovingColorsConfig.MAX_VALUE_ENTITY.value)
+        self._step_value_entity = self._options.get(MovingColorsConfig.STEP_VALUE_ENTITY.value)
+        self._random_limits_entity = self._options.get(MovingColorsConfig.RANDOM_LIMITS_ENTITY.value)
+        self._default_value_entity = self._options.get(MovingColorsConfig.DEFAULT_VALUE_ENTITY.value)
+        self._default_mode_enabled_entity = self._options.get(MovingColorsConfig.DEFAULT_MODE_ENABLED_ENTITY.value)
+        self._steps_to_default_entity = self._options.get(MovingColorsConfig.STEPS_TO_DEFAULT_ENTITY.value)
 
         # Initialize internal state based on start value
-        self._current_value = self._get_value_from_config_or_entity(MC_START_VALUE_STATIC, MC_START_VALUE_ENTITY, default_val=125)
+        self._current_value = self._get_value_from_config_or_entity(
+            MovingColorsConfig.START_VALUE_STATIC.value, MovingColorsConfig.START_VALUE_ENTITY.value, default_val=125
+        )
         self._count_up = True  # Initial direction
         self._remaining_steps_to_default = self._get_value_from_config_or_entity(
-            MC_STEPS_TO_DEFAULT_STATIC, MC_STEPS_TO_DEFAULT_ENTITY, default_val=3
+            MovingColorsConfig.STEPS_TO_DEFAULT_STATIC.value, MovingColorsConfig.STEPS_TO_DEFAULT_ENTITY.value, default_val=3
         )
-        self._current_lower_boundary = self._get_value_from_config_or_entity(MC_MIN_VALUE_STATIC, MC_MIN_VALUE_ENTITY, default_val=0)
-        self._current_upper_boundary = self._get_value_from_config_or_entity(MC_MAX_VALUE_STATIC, MC_MAX_VALUE_ENTITY, default_val=255)
+        self._current_lower_boundary = self._get_value_from_config_or_entity(
+            MovingColorsConfig.MIN_VALUE_STATIC.value, MovingColorsConfig.MIN_VALUE_ENTITY.value, default_val=0
+        )
+        self._current_upper_boundary = self._get_value_from_config_or_entity(
+            MovingColorsConfig.MAX_VALUE_STATIC.value, MovingColorsConfig.MAX_VALUE_ENTITY.value, default_val=255
+        )
 
         # Callback for sensor updates
         self._current_value_update_callback: Callable[[int], None] | None = None
@@ -322,7 +311,7 @@ class MovingColorsManager:
     def _setup_enabled_listener(self) -> None:
         """Set up listeners for enable/disable changes."""
         # Listen for entity state changes
-        entity_id = self._options.get(MC_ENABLED_ENTITY)
+        entity_id = self._options.get(MovingColorsConfig.ENABLED_ENTITY.value)
         if entity_id:
             unsub = async_track_state_change(
                 self.hass,
@@ -344,13 +333,13 @@ class MovingColorsManager:
     def is_enabled(self) -> bool:
         """Return True if Moving Colors should be active."""
         # Prefer entity if set
-        if self._options.get(MC_ENABLED_ENTITY):
-            entity_id = self._options[MC_ENABLED_ENTITY]
+        if self._options.get(MovingColorsConfig.ENABLED_ENTITY.value):
+            entity_id = self._options[MovingColorsConfig.ENABLED_ENTITY.value]
             state = self.hass.states.get(entity_id)
             if state and state.state not in ["unavailable", "unknown"]:
                 return state.state.lower() in ["on", "true", "1"]
         # Fallback to the static option
-        return self._options.get(MC_ENABLED_STATIC, True)
+        return self._options.get(MovingColorsConfig.ENABLED_STATIC.value, True)
 
     def get_current_value(self) -> int:
         """Return the current calculated value."""
@@ -358,11 +347,11 @@ class MovingColorsManager:
 
     def get_current_min_value(self) -> int:
         """Return the current min value."""
-        return int(self._get_value_from_config_or_entity(MC_MIN_VALUE_STATIC, MC_MIN_VALUE_ENTITY, 0))
+        return int(self._get_value_from_config_or_entity(MovingColorsConfig.MIN_VALUE_STATIC.value, MovingColorsConfig.MIN_VALUE_ENTITY.value, 0))
 
     def get_current_max_value(self) -> int:
         """Return the current max value."""
-        return int(self._get_value_from_config_or_entity(MC_MAX_VALUE_STATIC, MC_MAX_VALUE_ENTITY, 255))
+        return int(self._get_value_from_config_or_entity(MovingColorsConfig.MAX_VALUE_STATIC.value, MovingColorsConfig.MAX_VALUE_ENTITY.value, 255))
 
     def set_current_value_update_callback(self, callback_func: Callable[[int], None]) -> None:
         """Set the callback function for current value updates."""
@@ -377,16 +366,20 @@ class MovingColorsManager:
                 try:
                     # For numerical values, convert state to float/int
                     if static_key in [
-                        MC_START_VALUE_STATIC,
-                        MC_MIN_VALUE_STATIC,
-                        MC_MAX_VALUE_STATIC,
-                        MC_STEP_VALUE_STATIC,
-                        MC_DEFAULT_VALUE_STATIC,
-                        MC_STEPS_TO_DEFAULT_STATIC,
+                        MovingColorsConfig.START_VALUE_STATIC.value,
+                        MovingColorsConfig.MIN_VALUE_STATIC.value,
+                        MovingColorsConfig.MAX_VALUE_STATIC.value,
+                        MovingColorsConfig.STEP_VALUE_STATIC.value,
+                        MovingColorsConfig.DEFAULT_VALUE_STATIC.value,
+                        MovingColorsConfig.STEPS_TO_DEFAULT_STATIC.value,
                     ]:
                         return float(state.state)  # Use float for calculations, convert to int at the end
                     # For boolean values
-                    if static_key in [MC_RANDOM_LIMITS_STATIC, DEBUG_ENABLED, MC_DEFAULT_MODE_ENABLED_STATIC]:
+                    if static_key in [
+                        MovingColorsConfig.RANDOM_LIMITS_STATIC.value,
+                        DEBUG_ENABLED,
+                        MovingColorsConfig.DEFAULT_MODE_ENABLED_STATIC.value,
+                    ]:
                         return state.state.lower() == "on" or state.state.lower() == "true" or state.state == "1"
                 except ValueError:
                     self.logger.warning("Could not convert state '%s' for entity '%s' to required type. Using static value.", state.state, entity_id)
@@ -424,13 +417,29 @@ class MovingColorsManager:
         old_current_value = self._current_value  # Store old value to check for changes
 
         # Get current configuration values (refresh if from entity)
-        min_value = int(self._get_value_from_config_or_entity(MC_MIN_VALUE_STATIC, MC_MIN_VALUE_ENTITY, 0))
-        max_value = int(self._get_value_from_config_or_entity(MC_MAX_VALUE_STATIC, MC_MAX_VALUE_ENTITY, 255))
-        stepping = int(self._get_value_from_config_or_entity(MC_STEP_VALUE_STATIC, MC_STEP_VALUE_ENTITY, 2))
-        use_random = self._get_value_from_config_or_entity(MC_RANDOM_LIMITS_STATIC, MC_RANDOM_LIMITS_ENTITY, True)
-        default_value = int(self._get_value_from_config_or_entity(MC_DEFAULT_VALUE_STATIC, MC_DEFAULT_VALUE_ENTITY, 0))
-        default_active = self._get_value_from_config_or_entity(MC_DEFAULT_MODE_ENABLED_STATIC, MC_DEFAULT_MODE_ENABLED_ENTITY, False)
-        steps_to_default = int(self._get_value_from_config_or_entity(MC_STEPS_TO_DEFAULT_STATIC, MC_STEPS_TO_DEFAULT_ENTITY, 3))
+        min_value = int(
+            self._get_value_from_config_or_entity(MovingColorsConfig.MIN_VALUE_STATIC.value, MovingColorsConfig.MIN_VALUE_ENTITY.value, 0)
+        )
+        max_value = int(
+            self._get_value_from_config_or_entity(MovingColorsConfig.MAX_VALUE_STATIC.value, MovingColorsConfig.MAX_VALUE_ENTITY.value, 255)
+        )
+        stepping = int(
+            self._get_value_from_config_or_entity(MovingColorsConfig.STEP_VALUE_STATIC.value, MovingColorsConfig.STEP_VALUE_ENTITY.value, 2)
+        )
+        use_random = self._get_value_from_config_or_entity(
+            MovingColorsConfig.RANDOM_LIMITS_STATIC.value, MovingColorsConfig.RANDOM_LIMITS_ENTITY.value, True
+        )
+        default_value = int(
+            self._get_value_from_config_or_entity(MovingColorsConfig.DEFAULT_VALUE_STATIC.value, MovingColorsConfig.DEFAULT_VALUE_ENTITY.value, 0)
+        )
+        default_active = self._get_value_from_config_or_entity(
+            MovingColorsConfig.DEFAULT_MODE_ENABLED_STATIC.value, MovingColorsConfig.DEFAULT_MODE_ENABLED_ENTITY.value, False
+        )
+        steps_to_default = int(
+            self._get_value_from_config_or_entity(
+                MovingColorsConfig.STEPS_TO_DEFAULT_STATIC.value, MovingColorsConfig.STEPS_TO_DEFAULT_ENTITY.value, 3
+            )
+        )
 
         # PHP's validation logic from LB_LBSID_validateInput
         # In Python, Voluptuous handles most of this, but some runtime checks or adjustments are still useful
@@ -461,13 +470,15 @@ class MovingColorsManager:
 
         # PHP: if ($E[8]['refresh']) { setLogicElementVar($id, 5, $E[10]['value']); }
         # This implies: If the default value *input* itself gets refreshed, reset the remaining steps.
-        # In HA, if the `DEFAULT_VALUE_ENTITY` changes state, we'd need to detect that.
+        # In HA, if the `MovingColorsConfig.DEFAULT_VALUE_ENTITY.value` changes state, we'd need to detect that.
         # A simpler approach is that if `default_active` is true and `_remaining_steps_to_default` is None or 0,
         # it gets re-initialized to `steps_to_default`.
 
         # Check if current_value is initialized. If not, use start value.
         if self._current_value is None:
-            self._current_value = self._get_value_from_config_or_entity(MC_START_VALUE_STATIC, MC_START_VALUE_ENTITY, 0)
+            self._current_value = self._get_value_from_config_or_entity(
+                MovingColorsConfig.START_VALUE_STATIC.value, MovingColorsConfig.START_VALUE_ENTITY.value, 0
+            )
             self.logger.debug("Initialized _current_value to %s", self._current_value)
 
         # Default control is active

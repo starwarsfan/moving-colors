@@ -9,7 +9,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.restore_state import RestoreEntity
 
-from .const import DEBUG_ENABLED, DOMAIN, MC_CONF_NAME, MC_ENABLED_STATIC
+from .const import DEBUG_ENABLED, DOMAIN, MC_CONF_NAME, MovingColorsConfig
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -29,8 +29,8 @@ async def async_setup_entry(
         MovingColorsBooleanSwitch(
             hass,
             config_entry,
-            key=MC_ENABLED_STATIC,
-            translation_key=MC_ENABLED_STATIC,
+            key=MovingColorsConfig.ENABLED_STATIC.value,
+            translation_key=MovingColorsConfig.ENABLED_STATIC.value,
             instance_name=instance_name,
         ),
     ]
