@@ -1,15 +1,12 @@
 """Platform for Moving Colors switch."""
 
-from __future__ import annotations
-
 import logging
 from typing import Any
 
 from homeassistant.components.switch import SwitchEntity
-from homeassistant.config_entries import ConfigEntry  # noqa: TC002
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.helpers.entity_platform import AddEntitiesCallback  # noqa: TC002
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from .const import DEBUG_ENABLED, DOMAIN, MC_CONF_NAME, MC_ENABLED_STATIC
@@ -20,7 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities,
 ) -> None:
     """Set up the switch platform."""
     instance_name = config_entry.data.get(MC_CONF_NAME, DOMAIN)
