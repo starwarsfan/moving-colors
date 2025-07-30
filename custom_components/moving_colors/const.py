@@ -48,6 +48,7 @@ class MovingColorsConfig(Enum):
 
     ENABLED_STATIC = "enabled_static"
     ENABLED_ENTITY = "enabled_entity"
+    START_FROM_CURRENT_POSITION = "start_from_current_position"
     START_VALUE_STATIC = "start_value_static"
     START_VALUE_ENTITY = "start_value_entity"
     MIN_VALUE_STATIC = "min_value_static"
@@ -66,6 +67,17 @@ class MovingColorsConfig(Enum):
     STEPS_TO_DEFAULT_ENTITY = "steps_to_default_entity"
 
 
+class MovingColorsIntDefaults(Enum):
+    """Enum for the Moving Colors default values."""
+
+    START = 125
+    MIN = 0
+    MAX = 255
+    STEPPING = 3
+    DEFAULT_END = 125  # noqa: PIE796
+    STEPS_TO_DEFAULT_END = 5
+
+
 CFG_OPTIONS = vol.Schema(
     {
         # Target light entity or entities
@@ -75,12 +87,14 @@ CFG_OPTIONS = vol.Schema(
         vol.Optional(MovingColorsConfig.ENABLED_ENTITY.value): selector.EntitySelector(
             selector.EntitySelectorConfig(domain=["input_boolean", "binary_sensor"])
         ),
+        # Start from current position
+        vol.Optional(MovingColorsConfig.START_FROM_CURRENT_POSITION.value, default=True): selector.BooleanSelector(),
         # Start value
         vol.Optional(MovingColorsConfig.START_VALUE_ENTITY.value): selector.EntitySelector(
             selector.EntitySelectorConfig(domain=["sensor", "input_number"])
         ),
         vol.Optional(MovingColorsConfig.START_VALUE_STATIC.value, default=125): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=0, max=256, step=1, mode=selector.NumberSelectorMode.BOX)
+            selector.NumberSelectorConfig(min=0, max=255, step=1, mode=selector.NumberSelectorMode.BOX)
         ),
         # Minimal value
         vol.Optional(MovingColorsConfig.MIN_VALUE_ENTITY.value): selector.EntitySelector(

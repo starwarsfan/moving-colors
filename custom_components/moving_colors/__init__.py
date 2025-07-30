@@ -25,6 +25,7 @@ from .const import (
     TARGET_LIGHT_ENTITY_ID,
     VERSION,
     MovingColorsConfig,
+    MovingColorsIntDefaults,
 )
 
 _GLOBAL_DOMAIN_LOGGER = logging.getLogger(DOMAIN)
@@ -254,14 +255,17 @@ class MovingColorsManager:
 
         # Pre-fetch initial static values from config
         self._debug_enabled_static = self._options.get(DEBUG_ENABLED, False)
-        self._start_value_static = self._options.get(MovingColorsConfig.START_VALUE_STATIC.value, 125)
-        self._min_value_static = self._options.get(MovingColorsConfig.MIN_VALUE_STATIC.value, 0)
-        self._max_value_static = self._options.get(MovingColorsConfig.MAX_VALUE_STATIC.value, 255)
-        self._step_value_static = self._options.get(MovingColorsConfig.STEP_VALUE_STATIC.value, 2)
+        self._start_from_current_position = self._options.get(MovingColorsConfig.START_FROM_CURRENT_POSITION.value, True)
+        self._start_value_static = self._options.get(MovingColorsConfig.START_VALUE_STATIC.value, MovingColorsIntDefaults.START.value)
+        self._min_value_static = self._options.get(MovingColorsConfig.MIN_VALUE_STATIC.value, MovingColorsIntDefaults.MIN.value)
+        self._max_value_static = self._options.get(MovingColorsConfig.MAX_VALUE_STATIC.value, MovingColorsIntDefaults.MAX.value)
+        self._step_value_static = self._options.get(MovingColorsConfig.STEP_VALUE_STATIC.value, MovingColorsIntDefaults.STEPPING.value)
         self._random_limits_static = self._options.get(MovingColorsConfig.RANDOM_LIMITS_STATIC.value, True)
-        self._default_value_static = self._options.get(MovingColorsConfig.DEFAULT_VALUE_STATIC.value, 0)
+        self._default_value_static = self._options.get(MovingColorsConfig.DEFAULT_VALUE_STATIC.value, MovingColorsIntDefaults.DEFAULT_END.value)
         self._default_mode_enabled_static = self._options.get(MovingColorsConfig.DEFAULT_MODE_ENABLED_STATIC.value, False)
-        self._steps_to_default_static = self._options.get(MovingColorsConfig.STEPS_TO_DEFAULT_STATIC.value, 3)
+        self._steps_to_default_static = self._options.get(
+            MovingColorsConfig.STEPS_TO_DEFAULT_STATIC.value, MovingColorsIntDefaults.STEPS_TO_DEFAULT_END.value
+        )
 
         # Store entity IDs for dynamic values
         self._start_value_entity = self._options.get(MovingColorsConfig.START_VALUE_ENTITY.value)
@@ -275,17 +279,22 @@ class MovingColorsManager:
 
         # Initialize internal state based on start value
         self._current_value = self._get_value_from_config_or_entity(
-            MovingColorsConfig.START_VALUE_STATIC.value, MovingColorsConfig.START_VALUE_ENTITY.value, default_val=125
+            MovingColorsConfig.START_VALUE_STATIC.value, MovingColorsConfig.START_VALUE_ENTITY.value, default_val=MovingColorsIntDefaults.START.value
         )
+        if self._start_from_current_position:
+            self._current_value = self._get_brightness_of_first_light_entity()
+
         self._count_up = True  # Initial direction
         self._remaining_steps_to_default = self._get_value_from_config_or_entity(
-            MovingColorsConfig.STEPS_TO_DEFAULT_STATIC.value, MovingColorsConfig.STEPS_TO_DEFAULT_ENTITY.value, default_val=3
+            MovingColorsConfig.STEPS_TO_DEFAULT_STATIC.value,
+            MovingColorsConfig.STEPS_TO_DEFAULT_ENTITY.value,
+            default_val=MovingColorsIntDefaults.STEPS_TO_DEFAULT_END.value,
         )
         self._current_lower_boundary = self._get_value_from_config_or_entity(
-            MovingColorsConfig.MIN_VALUE_STATIC.value, MovingColorsConfig.MIN_VALUE_ENTITY.value, default_val=0
+            MovingColorsConfig.MIN_VALUE_STATIC.value, MovingColorsConfig.MIN_VALUE_ENTITY.value, default_val=MovingColorsIntDefaults.MIN.value
         )
         self._current_upper_boundary = self._get_value_from_config_or_entity(
-            MovingColorsConfig.MAX_VALUE_STATIC.value, MovingColorsConfig.MAX_VALUE_ENTITY.value, default_val=255
+            MovingColorsConfig.MAX_VALUE_STATIC.value, MovingColorsConfig.MAX_VALUE_ENTITY.value, default_val=MovingColorsIntDefaults.MAX.value
         )
 
         # Callback for sensor updates
@@ -320,6 +329,18 @@ class MovingColorsManager:
             )
             self._unsub_callbacks.append(unsub)
 
+    def _get_brightness_of_first_light_entity(self) -> int:
+        """Get the current brightness of the first configured light entity."""
+        if not self._target_light_entity_id:
+            self.logger.warning("No target light entity configured for START_FROM_CURRENT_POSITION.")
+            return self._current_value  # fallback
+        first_entity = self._target_light_entity_id[0]
+        state = self.hass.states.get(first_entity)
+        if state and "brightness" in state.attributes:
+            return int(state.attributes["brightness"])
+        self.logger.warning("Could not get brightness from %s, using default.", first_entity)
+        return self._current_value  # fallback
+
     @callback
     def _handle_enabled_state_change(self, entity_id, old_state, new_state) -> None:
         """Handle changes to the enabled entity."""
@@ -347,11 +368,19 @@ class MovingColorsManager:
 
     def get_current_min_value(self) -> int:
         """Return the current min value."""
-        return int(self._get_value_from_config_or_entity(MovingColorsConfig.MIN_VALUE_STATIC.value, MovingColorsConfig.MIN_VALUE_ENTITY.value, 0))
+        return int(
+            self._get_value_from_config_or_entity(
+                MovingColorsConfig.MIN_VALUE_STATIC.value, MovingColorsConfig.MIN_VALUE_ENTITY.value, MovingColorsIntDefaults.MIN.value
+            )
+        )
 
     def get_current_max_value(self) -> int:
         """Return the current max value."""
-        return int(self._get_value_from_config_or_entity(MovingColorsConfig.MAX_VALUE_STATIC.value, MovingColorsConfig.MAX_VALUE_ENTITY.value, 255))
+        return int(
+            self._get_value_from_config_or_entity(
+                MovingColorsConfig.MAX_VALUE_STATIC.value, MovingColorsConfig.MAX_VALUE_ENTITY.value, MovingColorsIntDefaults.MAX.value
+            )
+        )
 
     def set_current_value_update_callback(self, callback_func: Callable[[int], None]) -> None:
         """Set the callback function for current value updates."""
@@ -389,6 +418,9 @@ class MovingColorsManager:
 
     def async_start_update_task(self) -> None:  # Made async and renamed
         """Start the periodic update task."""
+        if self._start_from_current_position:
+            self._current_value = self._get_brightness_of_first_light_entity()
+
         # Use 2 seconds as a default for now.
         if hasattr(self, "_update_listener") and self._update_listener:
             # Already running
@@ -418,26 +450,38 @@ class MovingColorsManager:
 
         # Get current configuration values (refresh if from entity)
         min_value = int(
-            self._get_value_from_config_or_entity(MovingColorsConfig.MIN_VALUE_STATIC.value, MovingColorsConfig.MIN_VALUE_ENTITY.value, 0)
+            self._get_value_from_config_or_entity(
+                MovingColorsConfig.MIN_VALUE_STATIC.value, MovingColorsConfig.MIN_VALUE_ENTITY.value, MovingColorsIntDefaults.MIN.value
+            )
         )
         max_value = int(
-            self._get_value_from_config_or_entity(MovingColorsConfig.MAX_VALUE_STATIC.value, MovingColorsConfig.MAX_VALUE_ENTITY.value, 255)
+            self._get_value_from_config_or_entity(
+                MovingColorsConfig.MAX_VALUE_STATIC.value, MovingColorsConfig.MAX_VALUE_ENTITY.value, MovingColorsIntDefaults.MAX.value
+            )
         )
         stepping = int(
-            self._get_value_from_config_or_entity(MovingColorsConfig.STEP_VALUE_STATIC.value, MovingColorsConfig.STEP_VALUE_ENTITY.value, 2)
+            self._get_value_from_config_or_entity(
+                MovingColorsConfig.STEP_VALUE_STATIC.value, MovingColorsConfig.STEP_VALUE_ENTITY.value, MovingColorsIntDefaults.STEPPING.value
+            )
         )
         use_random = self._get_value_from_config_or_entity(
             MovingColorsConfig.RANDOM_LIMITS_STATIC.value, MovingColorsConfig.RANDOM_LIMITS_ENTITY.value, True
         )
         default_value = int(
-            self._get_value_from_config_or_entity(MovingColorsConfig.DEFAULT_VALUE_STATIC.value, MovingColorsConfig.DEFAULT_VALUE_ENTITY.value, 0)
+            self._get_value_from_config_or_entity(
+                MovingColorsConfig.DEFAULT_VALUE_STATIC.value,
+                MovingColorsConfig.DEFAULT_VALUE_ENTITY.value,
+                MovingColorsIntDefaults.DEFAULT_END.value,
+            )
         )
         default_active = self._get_value_from_config_or_entity(
             MovingColorsConfig.DEFAULT_MODE_ENABLED_STATIC.value, MovingColorsConfig.DEFAULT_MODE_ENABLED_ENTITY.value, False
         )
         steps_to_default = int(
             self._get_value_from_config_or_entity(
-                MovingColorsConfig.STEPS_TO_DEFAULT_STATIC.value, MovingColorsConfig.STEPS_TO_DEFAULT_ENTITY.value, 3
+                MovingColorsConfig.STEPS_TO_DEFAULT_STATIC.value,
+                MovingColorsConfig.STEPS_TO_DEFAULT_ENTITY.value,
+                MovingColorsIntDefaults.STEPS_TO_DEFAULT_END.value,
             )
         )
 
