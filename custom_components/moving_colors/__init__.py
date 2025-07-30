@@ -509,9 +509,8 @@ class MovingColorsManager:
                 self.logger.debug("defaultActive: true, remaining steps 0, setting currentValue to defaultValue: %s", self._current_value)
 
         else:  # Not in the default mode
-            # when not in default mode reset remaining steps variable
+            # When not in default mode reset remaining steps variable
             self._remaining_steps_to_default = steps_to_default
-            self.logger.debug("Default mode inactive. Resetting remaining steps to default.")
 
             # Get current dimm direction
             # If not initialized, assume count up
@@ -539,7 +538,7 @@ class MovingColorsManager:
             if self._count_up and self._current_value < self._current_upper_boundary:
                 # Increase dimm value
                 self._current_value += stepping
-                # Ensure not exceeding upper boundary
+                # Ensure not exceeding the upper boundary
                 self._current_value = min(self._current_value, self._current_upper_boundary)
             elif self._count_up and self._current_value >= self._current_upper_boundary:
                 # Reached upper boundary, so decrease dimm value, change dimm direction
@@ -549,7 +548,7 @@ class MovingColorsManager:
                 # If the random-based boundary was deactivated, skip computation of the next value
                 if use_random:
                     # PHP: rand($minValue, $upperBoundary)
-                    self._current_lower_boundary = random.randint(min_value, self._current_upper_boundary)
+                    self._current_lower_boundary = random.randint(0, self._current_value)
                     self.logger.debug("Reached upper boundary, switching to count down. New random lower boundary: %s", self._current_lower_boundary)
                 else:
                     self._current_lower_boundary = min_value  # Use fixed min if random is off
@@ -567,7 +566,7 @@ class MovingColorsManager:
                 # If the random-based boundary was deactivated, skip computation of the next value
                 if use_random:
                     # PHP: rand($lowerBoundary, $maxValue)
-                    self._current_upper_boundary = random.randint(self._current_lower_boundary, max_value)
+                    self._current_upper_boundary = random.randint(self._current_value, 255)
                     self.logger.debug("Reached lower boundary, switching to count up. New random upper boundary: %s", self._current_upper_boundary)
                 else:
                     self._current_upper_boundary = max_value  # Use fixed max if random is off
