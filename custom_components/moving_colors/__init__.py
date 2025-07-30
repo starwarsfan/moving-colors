@@ -190,9 +190,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Unload platforms
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
-    if not hass.data.get(DOMAIN_DATA_MANAGERS) or len(hass.data.get(DOMAIN_DATA_MANAGERS)) == 1:  # Check if this is the last entry
-        hass.services.async_remove(DOMAIN)
-
     if unload_ok:
         # Stop manager instance
         manager: MovingColorsManager = hass.data[DOMAIN_DATA_MANAGERS].pop(entry.entry_id, None)
