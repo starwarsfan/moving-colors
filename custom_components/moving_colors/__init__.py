@@ -305,6 +305,17 @@ class MovingColorsManager:
         self.logger.debug("Calling async_start for MovingColorsManager.")
         self.async_start_update_task()
 
+    async def async_stop(self) -> None:
+        """Stop the Moving Colors manager's operations."""
+        self.logger.debug("Stopping manager lifecycle...")
+        self.stop_update_task()
+        for unsub_callback in self._unsub_callbacks:
+            unsub_callback()
+        self._unsub_callbacks.clear()
+        self.logger.debug("Listeners unregistered.")
+
+        self.logger.debug("Manager lifecycle stopped.")
+
     def get_current_value(self) -> int:
         """Return the current calculated value."""
         return self._current_value if self._current_value is not None else 0
