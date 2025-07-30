@@ -68,8 +68,10 @@ class MovingColorsConfig(Enum):
 
 CFG_OPTIONS = vol.Schema(
     {
+        # Target light entity or entities
         vol.Optional(TARGET_LIGHT_ENTITY_ID): selector.EntitySelector(selector.EntitySelectorConfig(domain="light", multiple=True)),
-        vol.Optional(MovingColorsConfig.ENABLED_STATIC.value, default=True): selector.BooleanSelector(),
+        # Enable Moving Colors
+        vol.Optional(MovingColorsConfig.ENABLED_STATIC.value, default=False): selector.BooleanSelector(),
         vol.Optional(MovingColorsConfig.ENABLED_ENTITY.value): selector.EntitySelector(
             selector.EntitySelectorConfig(domain=["input_boolean", "binary_sensor"])
         ),
