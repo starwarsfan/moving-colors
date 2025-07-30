@@ -73,6 +73,12 @@ class MovingColorsBooleanSwitch(SwitchEntity, RestoreEntity):
         if icon:
             self._attr_icon = icon
 
+    @property
+    def is_on(self) -> bool | None:
+        """Return true if the switch is on."""
+        # False, if the key doesn't exist e.g., within the first setup or old configuration
+        return self._config_entry.options.get(self._key, False)
+
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Switch the switch on."""
         # Await the asynchronous _set_option call
