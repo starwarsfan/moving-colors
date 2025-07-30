@@ -54,7 +54,6 @@ class MovingColorsSensor(SensorEntity, RestoreEntity):
     """Defines a Moving Colors sensor."""
 
     _attr_has_entity_name = True
-    _attr_name = "Current Value"
 
     def __init__(self, manager: MovingColorsManager, entry_id: str, sensor_entry_type: SensorEntries) -> None:
         """Initialize the sensor."""
@@ -71,7 +70,7 @@ class MovingColorsSensor(SensorEntity, RestoreEntity):
         self._attr_unique_id = f"mc_{self._entry_id}_{self._sensor_entry_type.value}"
 
         # Define key used within translation files based on enum values e.g. "target_height".
-        self._attr_translation_key = f"sensor_{self._sensor_entry_type.value}"
+        self._attr_translation_key = f"{self._sensor_entry_type.value}"
 
         self._attr_state_class = "measurement"
         self._attr_native_unit_of_measurement = "%"

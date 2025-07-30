@@ -96,16 +96,13 @@
   "entity": {
     "sensor": {
       "current_value": {
-        "name": "Current color value",
-        "unit_of_measurement": "%"
+        "name": "Current color value"
       },
       "current_min_value": {
-        "name": "Current minimum value",
-        "unit_of_measurement": "%"
+        "name": "Current minimum value"
       },
       "current_max_value": {
-        "name": "Current maximum value",
-        "unit_of_measurement": "%"
+        "name": "Current maximum value"
       }
     },
     "switch": {

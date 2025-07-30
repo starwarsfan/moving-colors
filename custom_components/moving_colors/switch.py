@@ -43,7 +43,6 @@ class MovingColorsBooleanSwitch(SwitchEntity, RestoreEntity):
     """Defines a Moving Colors switch."""
 
     _attr_has_entity_name = True
-    _attr_name = "Moving Colors"
 
     def __init__(
         self, hass: HomeAssistant, config_entry: ConfigEntry, key: str, translation_key: str, instance_name: str, icon: str | None = None
