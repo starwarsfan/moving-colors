@@ -55,8 +55,10 @@ class MovingColorsConfig(Enum):
     MIN_VALUE_ENTITY = "min_value_entity"
     MAX_VALUE_STATIC = "max_value_static"
     MAX_VALUE_ENTITY = "max_value_entity"
-    STEP_VALUE_STATIC = "step_value_static"
-    STEP_VALUE_ENTITY = "step_value_entity"
+    STEPPING_STATIC = "stepping_static"
+    STEPPING_ENTITY = "stepping_entity"
+    TRIGGER_INTERVAL_STATIC = "trigger_interval_static"
+    TRIGGER_INTERVAL_ENTITY = "trigger_interval_entity"
     RANDOM_LIMITS_STATIC = "random_limits_static"
     RANDOM_LIMITS_ENTITY = "random_limits_entity"
     DEFAULT_VALUE_STATIC = "default_value_static"
@@ -74,6 +76,7 @@ class MovingColorsIntDefaults(Enum):
     MIN = 0
     MAX = 255
     STEPPING = 3
+    TRIGGER_INTERVAL = 2  # in seconds
     DEFAULT_END = 125  # noqa: PIE796
     STEPS_TO_DEFAULT_END = 5
 
@@ -111,11 +114,18 @@ CFG_OPTIONS = vol.Schema(
             selector.NumberSelectorConfig(min=0, max=255, step=1, mode=selector.NumberSelectorMode.BOX)
         ),
         # Stepping
-        vol.Optional(MovingColorsConfig.STEP_VALUE_ENTITY.value): selector.EntitySelector(
+        vol.Optional(MovingColorsConfig.STEPPING_ENTITY.value): selector.EntitySelector(
             selector.EntitySelectorConfig(domain=["sensor", "input_number"])
         ),
-        vol.Optional(MovingColorsConfig.STEP_VALUE_STATIC.value, default=3): selector.NumberSelector(
+        vol.Optional(MovingColorsConfig.STEPPING_STATIC.value, default=3): selector.NumberSelector(
             selector.NumberSelectorConfig(min=0, max=100, step=1, mode=selector.NumberSelectorMode.BOX)
+        ),
+        # Trigger interval
+        vol.Optional(MovingColorsConfig.TRIGGER_INTERVAL_ENTITY.value): selector.EntitySelector(
+            selector.EntitySelectorConfig(domain=["sensor", "input_number"])
+        ),
+        vol.Optional(MovingColorsConfig.TRIGGER_INTERVAL_STATIC.value, default=2): selector.NumberSelector(
+            selector.NumberSelectorConfig(min=0, max=3600, step=1, mode=selector.NumberSelectorMode.BOX)
         ),
         # Random limits on/off
         vol.Optional(MovingColorsConfig.RANDOM_LIMITS_STATIC.value, default=True): selector.BooleanSelector(),

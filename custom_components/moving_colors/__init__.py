@@ -259,7 +259,6 @@ class MovingColorsManager:
         self._start_value_static = self._options.get(MovingColorsConfig.START_VALUE_STATIC.value, MovingColorsIntDefaults.START.value)
         self._min_value_static = self._options.get(MovingColorsConfig.MIN_VALUE_STATIC.value, MovingColorsIntDefaults.MIN.value)
         self._max_value_static = self._options.get(MovingColorsConfig.MAX_VALUE_STATIC.value, MovingColorsIntDefaults.MAX.value)
-        self._step_value_static = self._options.get(MovingColorsConfig.STEP_VALUE_STATIC.value, MovingColorsIntDefaults.STEPPING.value)
         self._random_limits_static = self._options.get(MovingColorsConfig.RANDOM_LIMITS_STATIC.value, True)
         self._default_value_static = self._options.get(MovingColorsConfig.DEFAULT_VALUE_STATIC.value, MovingColorsIntDefaults.DEFAULT_END.value)
         self._default_mode_enabled_static = self._options.get(MovingColorsConfig.DEFAULT_MODE_ENABLED_STATIC.value, False)
@@ -271,7 +270,6 @@ class MovingColorsManager:
         self._start_value_entity = self._options.get(MovingColorsConfig.START_VALUE_ENTITY.value)
         self._min_value_entity = self._options.get(MovingColorsConfig.MIN_VALUE_ENTITY.value)
         self._max_value_entity = self._options.get(MovingColorsConfig.MAX_VALUE_ENTITY.value)
-        self._step_value_entity = self._options.get(MovingColorsConfig.STEP_VALUE_ENTITY.value)
         self._random_limits_entity = self._options.get(MovingColorsConfig.RANDOM_LIMITS_ENTITY.value)
         self._default_value_entity = self._options.get(MovingColorsConfig.DEFAULT_VALUE_ENTITY.value)
         self._default_mode_enabled_entity = self._options.get(MovingColorsConfig.DEFAULT_MODE_ENABLED_ENTITY.value)
@@ -295,6 +293,20 @@ class MovingColorsManager:
         )
         self._current_upper_boundary = self._get_value_from_config_or_entity(
             MovingColorsConfig.MAX_VALUE_STATIC.value, MovingColorsConfig.MAX_VALUE_ENTITY.value, default_val=MovingColorsIntDefaults.MAX.value
+        )
+
+        # Get stepping and trigger interval values
+        self._stepping = int(
+            self._get_value_from_config_or_entity(
+                MovingColorsConfig.STEPPING_STATIC.value, MovingColorsConfig.STEPPING_ENTITY.value, MovingColorsIntDefaults.STEPPING.value
+            )
+        )
+        self._trigger_interval = int(
+            self._get_value_from_config_or_entity(
+                MovingColorsConfig.TRIGGER_INTERVAL_STATIC.value,
+                MovingColorsConfig.TRIGGER_INTERVAL_ENTITY.value,
+                MovingColorsIntDefaults.TRIGGER_INTERVAL.value,
+            )
         )
 
         # Callback for sensor updates
@@ -398,7 +410,7 @@ class MovingColorsManager:
                         MovingColorsConfig.START_VALUE_STATIC.value,
                         MovingColorsConfig.MIN_VALUE_STATIC.value,
                         MovingColorsConfig.MAX_VALUE_STATIC.value,
-                        MovingColorsConfig.STEP_VALUE_STATIC.value,
+                        MovingColorsConfig.STEPPING_STATIC.value,
                         MovingColorsConfig.DEFAULT_VALUE_STATIC.value,
                         MovingColorsConfig.STEPS_TO_DEFAULT_STATIC.value,
                     ]:
@@ -421,11 +433,10 @@ class MovingColorsManager:
         if self._start_from_current_position:
             self._current_value = self._get_brightness_of_first_light_entity()
 
-        # Use 2 seconds as a default for now.
         if hasattr(self, "_update_listener") and self._update_listener:
             # Already running
             return
-        interval = timedelta(seconds=2)
+        interval = timedelta(seconds=self._trigger_interval)
         self.logger.debug("Starting periodic update task with interval %s.", interval)
         self._update_listener = async_track_time_interval(self.hass, self._async_update_moving_colors_state, interval)
         self._unsub_callbacks.append(self._update_listener)
@@ -461,7 +472,7 @@ class MovingColorsManager:
         )
         stepping = int(
             self._get_value_from_config_or_entity(
-                MovingColorsConfig.STEP_VALUE_STATIC.value, MovingColorsConfig.STEP_VALUE_ENTITY.value, MovingColorsIntDefaults.STEPPING.value
+                MovingColorsConfig.STEPPING_STATIC.value, MovingColorsConfig.STEPPING_ENTITY.value, MovingColorsIntDefaults.STEPPING.value
             )
         )
         use_random = self._get_value_from_config_or_entity(
