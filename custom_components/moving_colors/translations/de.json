@@ -9,14 +9,14 @@
           "debug_enabled": "Debug-Modus"
         },
         "data_description": {
-          "name": "Eindeutiger Name dieser Moving Colors (MC) Instanz",
-          "target_light_entity": "Eine oder mehrere Licht-Entitäten, welche mit dieser Moving Colors (MC) Instanz gesteuert werden sollen",
-          "debug_enabled": "Debug-Logs für diese Instanz aktivieren"
+          "name": "Eindeutiger Name dieser Moving Colors Instanz.",
+          "target_light_entity": "Eine oder mehrere Licht-Entitäten, welche mit dieser Moving Colors Instanz gesteuert werden sollen.",
+          "debug_enabled": "Debug-Logs für diese Instanz aktivieren."
         }
       },
       "options": {
         "title": "Konfigurierbare Optionen",
-        "description": "Alle konfigurierbaren Optionen dieser MC Instanz"
+        "description": "Alle konfigurierbaren Optionen dieser Moving Colors Instanz."
       }
     },
     "error": {
@@ -31,7 +31,7 @@
   "options": {
     "step": {
       "user": {
-        "description": "Hier wird der erste Teil der Details der zu steuernden Fassade resp. des zu steuernden Fensters konfiguriert.",
+        "description": "Hier wird konfiguriert, wie sich der Farbverlauf verhalten soll und wie er gesteuert wird.",
         "data": {
           "name": "Instanzname",
           "target_light_entity": "Behang-Entität",
@@ -56,32 +56,32 @@
           "debug_enabled": "Debug-Modus"
         },
         "data_description": {
-          "name": "Eindeutiger Name dieser Moving Colors (MC) Instanz",
-          "target_light_entity": "Behang, welcher mit dieser Moving Colors (MC) Instanz gehandhabt werden soll",
-          "mc_enabled_static": "",
-          "mc_enabled_entity": "",
-          "mc_start_value_static": "",
-          "mc_start_value_entity": "",
-          "mc_min_value_static": "",
-          "mc_min_value_entity": "",
-          "mc_max_value_static": "",
-          "mc_max_value_entity": "",
-          "mc_step_value_static": "",
-          "mc_step_value_entity": "",
-          "mc_random_limits_static": "",
-          "mc_random_limits_entity": "",
-          "mc_default_value_static": "",
-          "mc_default_value_entity": "",
-          "mc_default_mode_enabled_static": "",
-          "mc_default_mode_enabled_entity": "",
-          "mc_steps_to_default_static": "",
-          "mc_steps_to_default_entity": "",
-          "debug_enabled": "Debug-Logs für diese Instanz aktivieren"
+          "name": "Eindeutiger Name dieser Moving Colors Instanz",
+          "target_light_entity": "Licht-Entität(en), welche mit dieser Moving Colors Instanz gehandhabt werden soll(en).",
+          "mc_enabled_static": "Dauerhaftes de-/aktivieren der Moving Colors Instanz.",
+          "mc_enabled_entity": "De-/Aktivieren der Moving Colors Instanz via Entität.",
+          "mc_start_value_static": "Bei welchem Farbwert soll die Moving Colors Instanz starten.",
+          "mc_start_value_entity": "Bei welchem Farbwert soll die Moving Colors Instanz starten, via Entität.",
+          "mc_min_value_static": "Minimaler Farbwert, bei welchem die Moving Colors Instanz starten soll.",
+          "mc_min_value_entity": "Minimaler Farbwert, bei welchem die Moving Colors Instanz starten soll, via Entität.",
+          "mc_max_value_static": "Maximaler Farbwert, bis zu welchem die Moving Colors Instanz gehen soll.",
+          "mc_max_value_entity": "Maximaler Farbwert, bis zu welchem die Moving Colors Instanz gehen soll, via Entität.",
+          "mc_step_value_static": "Schrittweite, um welchen der Farbwert pro Durchlauf erhöht oder verringert werden soll.",
+          "mc_step_value_entity": "Schrittweite, um welchen der Farbwert pro Durchlauf via Entität erhöht oder verringert werden soll.",
+          "mc_random_limits_static": "Verwendung zufälliger Grenzen aktivieren",
+          "mc_random_limits_entity": "Verwendung zufälliger Grenzen via Entität aktivieren.",
+          "mc_default_value_static": "Standardwert beim Beenden des Farbwechsels.",
+          "mc_default_value_entity": "Standardwert beim Beenden des Farbwechsels via Entität.",
+          "mc_default_mode_enabled_static": "Verwendung des Standardmodus aktivieren.",
+          "mc_default_mode_enabled_entity": "Verwendung des Standardmodus via Entität aktivieren.",
+          "mc_steps_to_default_static": "Schritte bis zum Standardwert, wenn der Standardmodus aktiviert ist und der Farbwechsel deaktiviert wird.",
+          "mc_steps_to_default_entity": "Schritte bis zum Standardwert via Entität, wenn der Standardmodus aktiviert ist und der Farbwechsel deaktiviert wird.",
+          "debug_enabled": "Debug-Logs für diese Instanz aktivieren."
         }
       },
       "options": {
         "title": "Konfigurierbare Optionen",
-        "description": "Alle konfigurierbaren Optionen dieser MC Instanz"
+        "description": "Alle konfigurierbaren Optionen dieser Moving Colors Instanz."
       }
     },
     "error": {
@@ -91,6 +91,30 @@
     },
     "abort": {
       "already_configured": "Dieser Eintrag ist bereits konfiguriert."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "current_value": {
+        "name": "Aktueller Farbwert",
+        "unit_of_measurement": "%"
+      },
+      "current_min_value": {
+        "name": "Aktueller Minimalwert",
+        "unit_of_measurement": "%"
+      },
+      "current_max_value": {
+        "name": "Aktueller Maximalwert",
+        "unit_of_measurement": "%"
+      }
+    },
+    "switch": {
+      "debug_enabled": {
+        "name": "Debug-Modus"
+      },
+      "mc_enabled_static": {
+        "name": "Farbwechsel aktivieren"
+      }
     }
   }
 }

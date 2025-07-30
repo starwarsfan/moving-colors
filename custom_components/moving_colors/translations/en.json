@@ -5,18 +5,18 @@
       "user": {
         "data": {
           "name": "Instance name",
-          "target_light_entity": "Covers to maintain",
+          "target_light_entity": "Light entities",
           "debug_enabled": "Debug logs"
         },
         "data_description": {
-          "name": "A descriptive and unique name for this Moving Colors (MC) instance",
-          "target_light_entity": "Covers which should be handled by this Moving Colors (MC) instance",
-          "debug_enabled": "Activate debug logs for this instance"
+          "name": "A descriptive and unique name for this Moving Colors instance.",
+          "target_light_entity": "Covers which should be handled by this Moving Colors instance.",
+          "debug_enabled": "Activate debug logs for this instance."
         }
       },
       "options": {
         "title": "Configurable options",
-        "description": "All configurable options of this SC instance"
+        "description": "All configurable options of this Moving Colors instance."
       }
     },
     "error": {
@@ -31,7 +31,7 @@
   "options": {
     "step": {
       "user": {
-        "description": "Configure the first part of the details for the facade (or even the window), which should be handled by this SC instance",
+        "description": "Configure behavior of the color transition and how it is controlled.",
         "data": {
           "name": "Instance name",
           "target_light_entity": "Cover to maintain",
@@ -56,32 +56,32 @@
           "debug_enabled": "Debug logs"
         },
         "data_description": {
-          "name": "A descriptive and unique name for this Moving Colors (MC) instance",
-          "target_light_entity": "Cover which should be handled by this Moving Colors (MC) instance",
-          "mc_enabled_static": "",
-          "mc_enabled_entity": "",
-          "mc_start_value_static": "",
-          "mc_start_value_entity": "",
-          "mc_min_value_static": "",
-          "mc_min_value_entity": "",
-          "mc_max_value_static": "",
-          "mc_max_value_entity": "",
-          "mc_step_value_static": "",
-          "mc_step_value_entity": "",
-          "mc_random_limits_static": "",
-          "mc_random_limits_entity": "",
-          "mc_default_value_static": "",
-          "mc_default_value_entity": "",
-          "mc_default_mode_enabled_static": "",
-          "mc_default_mode_enabled_entity": "",
-          "mc_steps_to_default_static": "",
-          "mc_steps_to_default_entity": "",
+          "name": "A descriptive and unique name for this Moving Colors instance.",
+          "target_light_entity": "Light entity, which should be handled by this Moving Colors instance.",
+          "mc_enabled_static": "Permanently enable Moving Colors for this instance.",
+          "mc_enabled_entity": "Enable Moving Colors for this instance based on an entity state.",
+          "mc_start_value_static": "Start value for the color transition.",
+          "mc_start_value_entity": "Start value for the color transition based on an entity state.",
+          "mc_min_value_static": "Minimum value for the color transition.",
+          "mc_min_value_entity": "Minimum value for the color transition based on an entity state.",
+          "mc_max_value_static": "Maximum value for the color transition.",
+          "mc_max_value_entity": "Maximum value for the color transition based on an entity state.",
+          "mc_step_value_static": "Step value for the color transition.",
+          "mc_step_value_entity": "Step value for the color transition based on an entity state.",
+          "mc_random_limits_static": "Random limits for the color transition.",
+          "mc_random_limits_entity": "Random limits for the color transition based on an entity state.",
+          "mc_default_value_static": "Default value after disabled color transition.",
+          "mc_default_value_entity": "Default value after disabled color transition based on an entity state.",
+          "mc_default_mode_enabled_static": "Enable default mode for the color transition.",
+          "mc_default_mode_enabled_entity": "Enable default mode for the color transition based on an entity state.",
+          "mc_steps_to_default_static": "Steps to reach the default value after disabling the color transition.",
+          "mc_steps_to_default_entity": "Steps to reach the default value after disabling the color transition based on an entity state.",
           "debug_enabled": "Activate debug logs for this instance"
         }
       },
       "options": {
         "title": "Configurable options",
-        "description": "All configurable options of this SC instance"
+        "description": "All configurable options of this Moving Colors instance."
       }
     },
     "error": {
@@ -91,6 +91,30 @@
     },
     "abort": {
       "already_configured": "This entry is already configured."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "current_value": {
+        "name": "Current color value",
+        "unit_of_measurement": "%"
+      },
+      "current_min_value": {
+        "name": "Current minimum value",
+        "unit_of_measurement": "%"
+      },
+      "current_max_value": {
+        "name": "Current maximum value",
+        "unit_of_measurement": "%"
+      }
+    },
+    "switch": {
+      "debug_enabled": {
+        "name": "Debug Mode"
+      },
+      "mc_enabled_static": {
+        "name": "Enable Moving Colors"
+      }
     }
   }
 }
