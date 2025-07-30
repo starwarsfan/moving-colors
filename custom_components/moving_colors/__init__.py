@@ -309,6 +309,14 @@ class MovingColorsManager:
         """Return the current calculated value."""
         return self._current_value if self._current_value is not None else 0
 
+    def get_current_min_value(self) -> int:
+        """Return the current min value."""
+        return int(self._get_value_from_config_or_entity(MC_MIN_VALUE_STATIC, MC_MIN_VALUE_ENTITY, 0))
+
+    def get_current_max_value(self) -> int:
+        """Return the current max value."""
+        return int(self._get_value_from_config_or_entity(MC_MAX_VALUE_STATIC, MC_MAX_VALUE_ENTITY, 255))
+
     def set_current_value_update_callback(self, callback_func: Callable[[int], None]) -> None:
         """Set the callback function for current value updates."""
         self._current_value_update_callback = callback_func

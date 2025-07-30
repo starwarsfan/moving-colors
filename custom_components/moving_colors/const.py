@@ -1,5 +1,7 @@
 """Constants for the Moving Colors integration."""
 
+from enum import Enum
+
 import voluptuous as vol
 from homeassistant.helpers import selector
 
@@ -107,3 +109,11 @@ CFG_OPTIONS = vol.Schema(
         vol.Optional(DEBUG_ENABLED, default=False): selector.BooleanSelector(),
     }
 )
+
+
+class SensorEntries(Enum):
+    """Enum for the possible sensor entries."""
+
+    CURRENT_VALUE = "current_value"
+    CURRENT_MIN_VALUE = "current_min_value"
+    CURRENT_MAX_VALUE = "current_max_value"
