@@ -346,11 +346,29 @@ class MovingColorsManager:
         if not self._target_light_entity_id:
             self.logger.warning("No target light entity configured for START_FROM_CURRENT_POSITION.")
             return self._current_value  # fallback
+
         first_entity = self._target_light_entity_id[0]
         state = self.hass.states.get(first_entity)
-        if state and "brightness" in state.attributes:
-            return int(state.attributes["brightness"])
-        self.logger.warning("Could not get brightness from %s, using default.", first_entity)
+        brightness = state.attributes.get("brightness") if state and hasattr(state, "attributes") else None
+
+        if brightness is not None:
+            try:
+                return int(brightness)
+            except (ValueError, TypeError):
+                self.logger.warning(
+                    "Brightness attribute for %s is not a valid integer: %s. Using current value %s as fallback.",
+                    first_entity,
+                    brightness,
+                    self._current_value,
+                )
+        else:
+            self.logger.debug(
+                "Could not get valid brightness from %s (state: %s). Starting at 1%%.",
+                first_entity,
+                state.state if state else "None"
+            )
+            return 1  # Start at 1% if no valid brightness found
+
         return self._current_value  # fallback
 
     @callback
