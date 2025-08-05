@@ -362,11 +362,7 @@ class MovingColorsManager:
                     self._current_value,
                 )
         else:
-            self.logger.debug(
-                "Could not get valid brightness from %s (state: %s). Starting at 1%%.",
-                first_entity,
-                state.state if state else "None"
-            )
+            self.logger.debug("Could not get valid brightness from %s (state: %s). Starting at 1%%.", first_entity, state.state if state else "None")
             return 1  # Start at 1% if no valid brightness found
 
         return self._current_value  # fallback
