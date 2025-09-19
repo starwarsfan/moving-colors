@@ -468,6 +468,9 @@ class MovingColorsManager:
         """Detect color mode and initialize current values for the target light entity."""
         entity_id = self._target_light_entity_id[0]
         state = self.hass.states.get(entity_id)
+        self.logger.debug("State for %s: %s", entity_id, state)
+        if state:
+            self.logger.debug("Attributes for %s: %s", entity_id, state.attributes)
         supported = state.attributes.get("supported_color_modes", []) if state else []
         color_mode = state.attributes.get("color_mode") if state else None
         # Default to brightness
@@ -478,6 +481,11 @@ class MovingColorsManager:
         elif "rgb" in supported or color_mode == "rgb":
             self._color_mode = "rgb"
             rgb = state.attributes.get("rgb_color", [0, 0, 0]) if state else [0, 0, 0]
+            self._current_values = {"r": rgb[0], "g": rgb[1], "b": rgb[2]}
+        elif state and "rgb_color" in state.attributes:
+            # Fallback: if rgb_color attribute exists, treat as rgb
+            self._color_mode = "rgb"
+            rgb = state.attributes.get("rgb_color", [0, 0, 0])
             self._current_values = {"r": rgb[0], "g": rgb[1], "b": rgb[2]}
         else:
             self._color_mode = "brightness"
