@@ -14,7 +14,7 @@ from homeassistant.const import (
     Platform,
 )
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.event import async_track_state_change_event, async_track_time_interval
+from homeassistant.helpers.event import async_track_state_change, async_track_time_interval
 from homeassistant.helpers.typing import ConfigType
 
 from .const import (
@@ -334,11 +334,7 @@ class MovingColorsManager:
         # Listen for entity state changes
         entity_id = self._options.get(MovingColorsConfig.ENABLED_ENTITY.value)
         if entity_id:
-            unsub = async_track_state_change_event(
-                self.hass,
-                [entity_id],
-                self._handle_enabled_state_change,
-            )
+            unsub = async_track_state_change(self.hass, entity_id, self._handle_enabled_state_change)
             self._unsub_callbacks.append(unsub)
 
     def _get_brightness_of_first_light_entity(self) -> int:
