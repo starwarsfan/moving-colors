@@ -565,21 +565,30 @@ class MovingColorsManager:
                     service_data = {"entity_id": target_entity, "rgbw_color": rgbw}
                     self.logger.debug(
                         "Set light %s to rgbw_color %s (lower boundary: %s, upper boundary: %s)",
-                        target_entity, rgbw, self._current_lower_boundary, self._current_upper_boundary
+                        target_entity,
+                        rgbw,
+                        self._current_lower_boundary,
+                        self._current_upper_boundary,
                     )
                 elif self._color_mode == "rgb":
                     rgb = [self._current_values[c] for c in "rgb"]
                     service_data = {"entity_id": target_entity, "rgb_color": rgb}
                     self.logger.debug(
                         "Set light %s to rgb_color %s (lower boundary: %s, upper boundary: %s)",
-                        target_entity, rgb, self._current_lower_boundary, self._current_upper_boundary
+                        target_entity,
+                        rgb,
+                        self._current_lower_boundary,
+                        self._current_upper_boundary,
                     )
                 else:
                     brightness = self._current_values["brightness"]
                     service_data = {"entity_id": target_entity, "brightness": brightness}
                     self.logger.debug(
                         "Set light %s to brightness %s (lower boundary: %s, upper boundary: %s)",
-                        target_entity, brightness, self._current_lower_boundary, self._current_upper_boundary
+                        target_entity,
+                        brightness,
+                        self._current_lower_boundary,
+                        self._current_upper_boundary,
                     )
                 await self.hass.services.async_call("light", "turn_on", service_data)
             else:
