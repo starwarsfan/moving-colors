@@ -8,7 +8,7 @@ on:
 permissions: {}
 
 env:
-  INTEGRATION_NAME: moving-colors
+  INTEGRATION_NAME: shadow-control
 
 jobs:
   release:
@@ -44,6 +44,8 @@ jobs:
                   break
               if in_section:
                   notes.append(line.rstrip())
+          with open('.github/RELEASENOTES_FOOTER.md', 'r') as footer:
+              notes.append(footer.read().strip())
           with open('release_notes.txt', 'w') as out:
               out.write('\n'.join(notes).strip())
           EOF
@@ -58,6 +60,14 @@ jobs:
           cd custom_components
           zip -r ../${{ env.INTEGRATION_NAME }}-${{ env.VERSION }}-${{ env.GITHASH }}.zip ./
 
+      - name: Set prerelease flag
+        run: |
+          if [[ "${GITHUB_REF##*/}" =~ -rc ]]; then
+            echo "PRERELEASE=true" >> $GITHUB_ENV
+          else
+            echo "PRERELEASE=false" >> $GITHUB_ENV
+          fi
+
       - name: Create GitHub Release and Upload Asset
         uses: softprops/action-gh-release@v2
         with:
@@ -65,5 +75,6 @@ jobs:
           name: Release ${{ github.ref_name }}
           body_path: release_notes.txt
           files: ${{ env.INTEGRATION_NAME }}-${{ env.VERSION }}-${{ env.GITHASH }}.zip
+          prerelease: ${{ env.PRERELEASE }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
