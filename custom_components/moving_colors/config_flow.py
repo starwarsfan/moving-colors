@@ -6,19 +6,68 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
+from homeassistant.helpers import selector
 from voluptuous import Any
 
 from .const import (
-    CFG_MINIMAL,
-    CFG_MINIMAL_OPTIONS,
-    CFG_OPTIONS,
+    DEBUG_ENABLED,
     DOMAIN,
     MC_CONF_NAME,
     TARGET_LIGHT_ENTITY_ID,
     VERSION,
+    MCConfig,
+    MCInternal,
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+
+# Wrapper for config options, which will be used and validated within ConfigFlow and OptionFlow
+def get_cfg_options() -> vol.Schema:
+    """Get config options configuration schema."""
+    return vol.Schema(
+        {
+            # Target light entity or entities
+            vol.Optional(TARGET_LIGHT_ENTITY_ID): selector.EntitySelector(selector.EntitySelectorConfig(domain="light", multiple=True)),
+            # Enable Moving Colors
+            vol.Optional(MCConfig.ENABLED_ENTITY.value): selector.EntitySelector(
+                selector.EntitySelectorConfig(domain=["input_boolean", "binary_sensor"])
+            ),
+            # Start from current position
+            # Start value
+            vol.Optional(MCConfig.START_VALUE_ENTITY.value): selector.EntitySelector(
+                selector.EntitySelectorConfig(domain=["sensor", "input_number"])
+            ),
+            # Minimal value
+            vol.Optional(MCConfig.MIN_VALUE_ENTITY.value): selector.EntitySelector(selector.EntitySelectorConfig(domain=["sensor", "input_number"])),
+            # Maximal value
+            vol.Optional(MCConfig.MAX_VALUE_ENTITY.value): selector.EntitySelector(selector.EntitySelectorConfig(domain=["sensor", "input_number"])),
+            # Stepping
+            vol.Optional(MCConfig.STEPPING_ENTITY.value): selector.EntitySelector(selector.EntitySelectorConfig(domain=["sensor", "input_number"])),
+            # Trigger interval
+            vol.Optional(MCConfig.TRIGGER_INTERVAL_ENTITY.value): selector.EntitySelector(
+                selector.EntitySelectorConfig(domain=["sensor", "input_number"])
+            ),
+            # Random limits on/off
+            vol.Optional(MCConfig.RANDOM_LIMITS_ENTITY.value): selector.EntitySelector(
+                selector.EntitySelectorConfig(domain=["input_boolean", "binary_sensor"])
+            ),
+            # Default value
+            vol.Optional(MCConfig.DEFAULT_VALUE_ENTITY.value): selector.EntitySelector(
+                selector.EntitySelectorConfig(domain=["sensor", "input_number"])
+            ),
+            # Enable default mode
+            vol.Optional(MCConfig.DEFAULT_MODE_ENABLED_ENTITY.value): selector.EntitySelector(
+                selector.EntitySelectorConfig(domain=["input_boolean", "binary_sensor"])
+            ),
+            # Steps to default value
+            vol.Optional(MCConfig.STEPS_TO_DEFAULT_ENTITY.value): selector.EntitySelector(
+                selector.EntitySelectorConfig(domain=["sensor", "input_number"])
+            ),
+            # Enable debug mode
+            vol.Optional(DEBUG_ENABLED, default=False): selector.BooleanSelector(),
+        }
+    )
 
 
 class MovingColorsConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
@@ -54,9 +103,16 @@ class MovingColorsConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         # All the rest into 'options'
         options_data_for_entry = import_config
 
+        # Extract SCInternal values before validation
+        sc_internal_values = {key: options_data_for_entry[key] for key in list(options_data_for_entry) if key in [e.value for e in MCInternal]}
+
+        # Remove them from options_data_for_entry so validation doesn't fail
+        for key in sc_internal_values:
+            options_data_for_entry.pop(key)
+
         # Optional validation against FULL_OPTIONS_SCHEMA to verify the yaml data
         try:
-            validated_options = CFG_OPTIONS(options_data_for_entry)
+            validated_options = get_cfg_options()(options_data_for_entry)
         except vol.Invalid:
             _LOGGER.exception("Validation error during YAML import for '%s'", instance_name)
             return self.async_abort(reason="invalid_yaml_config")
@@ -91,7 +147,7 @@ class MovingColorsConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             if errors:
                 return self.async_show_form(
                     step_id="user",
-                    data_schema=self.add_suggested_values_to_schema(CFG_MINIMAL, form_data),
+                    data_schema=self.add_suggested_values_to_schema(get_cfg_options(), form_data),
                     errors=errors,
                 )
 
@@ -101,7 +157,7 @@ class MovingColorsConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             for entry in self.hass.config_entries.async_entries(DOMAIN):
                 if entry.data.get(MC_CONF_NAME) == instance_name:
                     errors = {"base": "already_configured"}
-                    return self.async_show_form(step_id="user", data_schema=CFG_MINIMAL, errors=errors)
+                    return self.async_show_form(step_id="user", data_schema=get_cfg_options(), errors=errors)
 
             # Immutable configuration data, not available within OptionsFlow
             config_data_for_entry = {
@@ -117,7 +173,7 @@ class MovingColorsConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
             # All fine, now perform voluptuous validation
             try:
-                validated_options_initial = CFG_MINIMAL_OPTIONS(options_data_for_entry)
+                validated_options_initial = get_cfg_options(options_data_for_entry)
                 _LOGGER.debug("Creating entry with data: %s and options: %s", config_data_for_entry, validated_options_initial)
                 return self.async_create_entry(
                     title=instance_name,
@@ -134,7 +190,7 @@ class MovingColorsConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="user",
-            data_schema=self.add_suggested_values_to_schema(CFG_MINIMAL, self.config_data),
+            data_schema=self.add_suggested_values_to_schema(get_cfg_options(), self.config_data),
             errors=errors,
         )
 
@@ -176,18 +232,33 @@ class MovingColorsOptionsFlowHandler(config_entries.OptionsFlow):
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> FlowResult:
         """Handle general data options."""
         _LOGGER.debug("[OptionsFlow] -> async_step_user")
-        data_schema = CFG_OPTIONS
-        validation_schema = CFG_OPTIONS
-
+        validation_schema = get_cfg_options()
         errors: dict[str, str] = {}
         if user_input is not None:
-            self.options_data.update(self._clean_number_inputs(user_input))
-            _LOGGER.debug("Final options data before update: %s", self.options_data)
+            _LOGGER.debug("[OptionsFlow facade settings] Received user_input: %s", user_input)
+
+            # Manual validation of input fields to provide possible error messages
+            # for each field at once and not step by step.
+            # if not user_input.get(TARGET_COVER_ENTITY_ID):
+            #    errors[TARGET_COVER_ENTITY_ID] = "target_cover_entity"  # Error code from within strings.json
+
+            # If configuration errors found, show the config form again
+            if errors:
+                return self.async_show_form(
+                    step_id="user",
+                    data_schema=self.add_suggested_values_to_schema(get_cfg_options(), self.options_data),
+                    errors=errors,
+                )
+
+            for entity_field in MCConfig:
+                if entity_field.name.endswith("_ENTITY") and not user_input.get(entity_field.value):
+                    _LOGGER.debug("[OptionsFlow] %s is empty, removing it from options_data", entity_field.name)
+                    self.options_data.pop(entity_field.value, None)
 
             try:
                 # Validate the entire options configuration using the combined schema
                 validated_options = validation_schema(self.options_data)
-                _LOGGER.debug("Validated options data: %s", validated_options)
+                _LOGGER.debug("[OptionsFlow dawn settings] Validated options data: %s", validated_options)
 
                 self.hass.config_entries.async_update_entry(self.config_entry, data=self.config_entry.data, options=validated_options)
 
@@ -203,7 +274,7 @@ class MovingColorsOptionsFlowHandler(config_entries.OptionsFlow):
 
         return self.async_show_form(
             step_id="user",
-            data_schema=self.add_suggested_values_to_schema(data_schema, self.options_data),
+            data_schema=self.add_suggested_values_to_schema(get_cfg_options(), self.options_data),
             errors=errors,
         )
 

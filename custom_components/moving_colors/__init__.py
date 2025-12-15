@@ -10,9 +10,11 @@ from typing import Any
 import homeassistant.util.dt as dt_util
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
+    EVENT_HOMEASSISTANT_STARTED,
     Platform,
 )
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import entity_registry
 from homeassistant.helpers.event import async_track_state_change, async_track_time_interval
 from homeassistant.helpers.typing import ConfigType
 
@@ -23,14 +25,15 @@ from .const import (
     MC_CONF_NAME,
     TARGET_LIGHT_ENTITY_ID,
     VERSION,
-    MovingColorsConfig,
-    MovingColorsIntDefaults,
+    MCConfig,
+    MCIntDefaults,
+    MCInternal,
 )
 
 _GLOBAL_DOMAIN_LOGGER = logging.getLogger(DOMAIN)
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.SWITCH]
+PLATFORMS: list[Platform] = [Platform.NUMBER, Platform.SENSOR, Platform.SWITCH]
 
 CURRENT_SCHEMA_VERSION = VERSION
 
@@ -136,8 +139,66 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         _LOGGER.error("[%s] No target light entity ID found in config for entry %s.", manager_name, entry.entry_id)
         return False
 
+    # =================================================================
+    # Get SCInternal config options from yaml import and remove them
+    # from entry.options and entry.data afterward.
+    mc_internal_values = config_data.get("mc_internal_values", {})
+
+    config_data.pop("mc_internal_values", None)
+
+    # Remove from options
+    if "mc_internal_values" in entry.options:
+        new_options = dict(entry.options)
+        new_options.pop("mc_internal_values")
+        hass.config_entries.async_update_entry(entry, options=new_options)
+
+    # Remove from data
+    if "mc_internal_values" in entry.data:
+        new_data = dict(entry.data)
+        new_data.pop("mc_internal_values")
+        hass.config_entries.async_update_entry(entry, data=new_data)
+    # End of SCInternal handling
+    # =================================================================
+
     # Hand over the combined configuration dictionary to the MovingColorsManager
     manager = MovingColorsManager(hass, config_data, entry.entry_id, instance_specific_logger)
+
+    # =================================================================
+    # After HA was started, the new internal entities exist.
+    # Now set internal (manual) entities with configured values from yaml import
+    async def set_internal_entities_when_ready(event=None) -> None:
+        for internal_enum_name, value in mc_internal_values.items():
+            _LOGGER.info("Configuring internal entity %s with %s", internal_enum_name, value)
+            internal_enum = next((member for member in MCInternal if member.value == internal_enum_name), None)
+
+            if internal_enum is None:
+                _LOGGER.warning("Could not find SCInternal member for configuration key: %s. Skipping entity setup.", internal_enum_name)
+                continue
+
+            entity_id = manager.get_internal_entity_id(internal_enum)
+            if entity_id:
+                domain = internal_enum.domain
+                if domain == "number":
+                    _LOGGER.debug("Setting value of number %s to %s", entity_id, value)
+                    await hass.services.async_call("number", "set_value", {"entity_id": entity_id, "value": value}, blocking=True)
+                elif domain == "switch":
+                    _LOGGER.debug("Setting value of switch %s to %s", entity_id, value)
+                    service = "turn_on" if value else "turn_off"
+                    await hass.services.async_call("switch", service, {"entity_id": entity_id}, blocking=True)
+                elif domain == "select":
+                    _LOGGER.debug("Setting value of select %s to %s", entity_id, value)
+                    if hass.services.has_service("select", "select_option"):
+                        await hass.services.async_call("select", "select_option", {"entity_id": entity_id, "option": value}, blocking=True)
+                    else:
+                        _LOGGER.warning("Service select.select_option not found for entity %s", entity_id)
+                else:
+                    _LOGGER.warning("Unsupported domain %s for internal entity %s", domain, entity_id)
+            else:
+                _LOGGER.warning("Could not find entity ID for internal entity %s", internal_enum_name)
+
+    hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STARTED, set_internal_entities_when_ready)
+    # End of setting internal entities
+    # =================================================================
 
     # Store manager within 'hass.data' to let sensors and other components access it.
     if DOMAIN_DATA_MANAGERS not in hass.data:
@@ -162,13 +223,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
     _LOGGER.debug("[%s] Unloading Moving Colors integration for entry: %s", DOMAIN, entry.entry_id)
 
-    entry_id = entry.entry_id
-    instance_name = entry.data.get(MC_CONF_NAME)
-    instance_logger = _GLOBAL_DOMAIN_LOGGER.getChild(f"{DOMAIN}.{instance_name or entry_id}")
-    instance_logger.debug("[%s] async_unload_entry called.", DOMAIN)
-
     # Stop the periodic update task
-    manager: MovingColorsManager = hass.data[DOMAIN_DATA_MANAGERS].get(entry_id)
+    manager: MovingColorsManager = hass.data[DOMAIN_DATA_MANAGERS].get(entry.entry_id)
     if manager:
         manager.stop_update_task()
 
@@ -217,25 +273,25 @@ async def _async_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> Non
 class MovingColorsManager:
     """Manages the Moving Colors logic and state."""
 
-    def __init__(self, hass: HomeAssistant, config: dict[str, Any], entry_id: str, instance_logger: logging.Logger) -> None:
+    def __init__(self, hass: HomeAssistant, config_entry: ConfigEntry, instance_logger: logging.Logger) -> None:
         """Initialize the MovingColorsManager."""
         self.hass = hass
-        self.entry_id = entry_id
+        self.config_entry = config_entry
+        self._entry_id = config_entry.entry_id
+        self._config = {**config_entry.data, **config_entry.options}
         self.logger = instance_logger
 
-        self.name = config.get(MC_CONF_NAME)
-        self._target_light_entity_id = config.get(TARGET_LIGHT_ENTITY_ID)
+        self.name = self._config.get(MC_CONF_NAME)
+        self._target_light_entity_id = self._config.get(TARGET_LIGHT_ENTITY_ID)
 
         # Check if critical values are missing, even if this might be done within async_setup_entry
         if not self.name:
-            self.logger.warning("Manager init: Manager name is missing in config for entry %s. Using fallback.", entry_id)
-            self.name = f"Unnamed Moving Colors ({entry_id})"
+            self.logger.warning("Manager init: Manager name is missing in config for entry %s. Using fallback.", self._entry_id)
+            self.name = f"Unnamed Moving Colors ({self._entry_id})"
         if not self._target_light_entity_id:
-            self.logger.error("Manager init: Target light entity ID is missing in config for entry %s. This is critical.", entry_id)
-            message = f"Target light entity ID missing for entry {entry_id}"
+            self.logger.error("Manager init: Target light entity ID is missing in config for entry %s. This is critical.", self._entry_id)
+            message = f"Target light entity ID missing for entry {self._entry_id}"
             raise ValueError(message)
-
-        self._options = config  # Store all config/options
 
         self._unsub_callbacks: list[Callable[[], None]] = []
         self._update_listener: Callable[[], None] | None = None  # To store the interval task unlistener
@@ -253,58 +309,54 @@ class MovingColorsManager:
         self._remaining_steps_to_default: int | None = None
 
         # Pre-fetch initial static values from config
-        self._debug_enabled_static = self._options.get(DEBUG_ENABLED, False)
-        self._start_from_current_position = self._options.get(MovingColorsConfig.START_FROM_CURRENT_POSITION.value, True)
-        self._start_value_static = self._options.get(MovingColorsConfig.START_VALUE_STATIC.value, MovingColorsIntDefaults.START.value)
-        self._min_value_static = self._options.get(MovingColorsConfig.MIN_VALUE_STATIC.value, MovingColorsIntDefaults.MIN.value)
-        self._max_value_static = self._options.get(MovingColorsConfig.MAX_VALUE_STATIC.value, MovingColorsIntDefaults.MAX.value)
-        self._random_limits_static = self._options.get(MovingColorsConfig.RANDOM_LIMITS_STATIC.value, True)
-        self._default_value_static = self._options.get(MovingColorsConfig.DEFAULT_VALUE_STATIC.value, MovingColorsIntDefaults.DEFAULT_END.value)
-        self._default_mode_enabled_static = self._options.get(MovingColorsConfig.DEFAULT_MODE_ENABLED_STATIC.value, False)
-        self._steps_to_default_static = self._options.get(
-            MovingColorsConfig.STEPS_TO_DEFAULT_STATIC.value, MovingColorsIntDefaults.STEPS_TO_DEFAULT_END.value
-        )
+        self._debug_enabled_static = self._config.get(DEBUG_ENABLED, False)
+        self._start_from_current_position = self._config.get(MCConfig.START_FROM_CURRENT_POSITION_ENTITY.value, True)
+        self._start_value = self._config.get(MCInternal.START_VALUE_MANUAL.value, MCIntDefaults.START.value)
+        self._min_value = self._config.get(MCInternal.MIN_VALUE_MANUAL.value, MCIntDefaults.MIN.value)
+        self._max_value = self._config.get(MCInternal.MAX_VALUE_MANUAL.value, MCIntDefaults.MAX.value)
+        self._random_limits = self._config.get(MCInternal.RANDOM_LIMITS_MANUAL.value, True)
+        self._default_value = self._config.get(MCInternal.DEFAULT_VALUE_MANUAL.value, MCIntDefaults.DEFAULT_END.value)
+        self._default_mode_enabled = self._config.get(MCInternal.DEFAULT_MODE_ENABLED_MANUAL.value, False)
+        self._steps_to_default = self._config.get(MCInternal.STEPS_TO_DEFAULT_MANUAL.value, MCIntDefaults.STEPS_TO_DEFAULT_END.value)
 
         # Store entity IDs for dynamic values
-        self._start_value_entity = self._options.get(MovingColorsConfig.START_VALUE_ENTITY.value)
-        self._min_value_entity = self._options.get(MovingColorsConfig.MIN_VALUE_ENTITY.value)
-        self._max_value_entity = self._options.get(MovingColorsConfig.MAX_VALUE_ENTITY.value)
-        self._random_limits_entity = self._options.get(MovingColorsConfig.RANDOM_LIMITS_ENTITY.value)
-        self._default_value_entity = self._options.get(MovingColorsConfig.DEFAULT_VALUE_ENTITY.value)
-        self._default_mode_enabled_entity = self._options.get(MovingColorsConfig.DEFAULT_MODE_ENABLED_ENTITY.value)
-        self._steps_to_default_entity = self._options.get(MovingColorsConfig.STEPS_TO_DEFAULT_ENTITY.value)
+        self._start_value_entity = self._config.get(MCConfig.START_VALUE_ENTITY.value)
+        self._min_value_entity = self._config.get(MCConfig.MIN_VALUE_ENTITY.value)
+        self._max_value_entity = self._config.get(MCConfig.MAX_VALUE_ENTITY.value)
+        self._random_limits_entity = self._config.get(MCConfig.RANDOM_LIMITS_ENTITY.value)
+        self._default_value_entity = self._config.get(MCConfig.DEFAULT_VALUE_ENTITY.value)
+        self._default_mode_enabled_entity = self._config.get(MCConfig.DEFAULT_MODE_ENABLED_ENTITY.value)
+        self._steps_to_default_entity = self._config.get(MCConfig.STEPS_TO_DEFAULT_ENTITY.value)
 
         # Initialize internal state based on start value
         self._current_value = self._get_value_from_config_or_entity(
-            MovingColorsConfig.START_VALUE_STATIC.value, MovingColorsConfig.START_VALUE_ENTITY.value, default_val=MovingColorsIntDefaults.START.value
+            MCInternal.START_VALUE_MANUAL.value, MCConfig.START_VALUE_ENTITY.value, default_val=MCIntDefaults.START.value
         )
         if self._start_from_current_position:
             self._current_value = self._get_brightness_of_first_light_entity()
 
         self._count_up = True  # Initial direction
         self._remaining_steps_to_default = self._get_value_from_config_or_entity(
-            MovingColorsConfig.STEPS_TO_DEFAULT_STATIC.value,
-            MovingColorsConfig.STEPS_TO_DEFAULT_ENTITY.value,
-            default_val=MovingColorsIntDefaults.STEPS_TO_DEFAULT_END.value,
+            MCInternal.STEPS_TO_DEFAULT_MANUAL.value,
+            MCConfig.STEPS_TO_DEFAULT_ENTITY.value,
+            default_val=MCIntDefaults.STEPS_TO_DEFAULT_END.value,
         )
         self._current_lower_boundary = self._get_value_from_config_or_entity(
-            MovingColorsConfig.MIN_VALUE_STATIC.value, MovingColorsConfig.MIN_VALUE_ENTITY.value, default_val=MovingColorsIntDefaults.MIN.value
+            MCInternal.MIN_VALUE_MANUAL.value, MCConfig.MIN_VALUE_ENTITY.value, default_val=MCIntDefaults.MIN.value
         )
         self._current_upper_boundary = self._get_value_from_config_or_entity(
-            MovingColorsConfig.MAX_VALUE_STATIC.value, MovingColorsConfig.MAX_VALUE_ENTITY.value, default_val=MovingColorsIntDefaults.MAX.value
+            MCInternal.MAX_VALUE_MANUAL.value, MCConfig.MAX_VALUE_ENTITY.value, default_val=MCIntDefaults.MAX.value
         )
 
         # Get stepping and trigger interval values
         self._stepping = int(
-            self._get_value_from_config_or_entity(
-                MovingColorsConfig.STEPPING_STATIC.value, MovingColorsConfig.STEPPING_ENTITY.value, MovingColorsIntDefaults.STEPPING.value
-            )
+            self._get_value_from_config_or_entity(MCInternal.STEPPING_MANUAL.value, MCConfig.STEPPING_ENTITY.value, MCIntDefaults.STEPPING.value)
         )
         self._trigger_interval = int(
             self._get_value_from_config_or_entity(
-                MovingColorsConfig.TRIGGER_INTERVAL_STATIC.value,
-                MovingColorsConfig.TRIGGER_INTERVAL_ENTITY.value,
-                MovingColorsIntDefaults.TRIGGER_INTERVAL.value,
+                MCInternal.TRIGGER_INTERVAL_MANUAL.value,
+                MCConfig.TRIGGER_INTERVAL_ENTITY.value,
+                MCIntDefaults.TRIGGER_INTERVAL.value,
             )
         )
 
@@ -338,7 +390,7 @@ class MovingColorsManager:
     def _setup_enabled_listener(self) -> None:
         """Set up listeners for enable/disable changes."""
         # Listen for entity state changes
-        entity_id = self._options.get(MovingColorsConfig.ENABLED_ENTITY.value)
+        entity_id = self._config.get(MCConfig.ENABLED_ENTITY.value)
         if entity_id:
             unsub = async_track_state_change(self.hass, entity_id, self._handle_enabled_state_change)
             self._unsub_callbacks.append(unsub)
@@ -382,13 +434,13 @@ class MovingColorsManager:
     def is_enabled(self) -> bool:
         """Return True if Moving Colors should be active."""
         # Prefer entity if set
-        if self._options.get(MovingColorsConfig.ENABLED_ENTITY.value):
-            entity_id = self._options[MovingColorsConfig.ENABLED_ENTITY.value]
+        if self._config.get(MCConfig.ENABLED_ENTITY.value):
+            entity_id = self._config[MCConfig.ENABLED_ENTITY.value]
             state = self.hass.states.get(entity_id)
             if state and state.state not in ["unavailable", "unknown"]:
                 return state.state.lower() in ["on", "true", "1"]
         # Fallback to the static option
-        return self._options.get(MovingColorsConfig.ENABLED_STATIC.value, True)
+        return self._config.get(MCInternal.ENABLED_MANUAL.value, True)
 
     def get_current_value(self) -> int:
         """Return the current calculated value."""
@@ -396,19 +448,11 @@ class MovingColorsManager:
 
     def get_current_min_value(self) -> int:
         """Return the current min value."""
-        return int(
-            self._get_value_from_config_or_entity(
-                MovingColorsConfig.MIN_VALUE_STATIC.value, MovingColorsConfig.MIN_VALUE_ENTITY.value, MovingColorsIntDefaults.MIN.value
-            )
-        )
+        return int(self._get_value_from_config_or_entity(MCInternal.MIN_VALUE_MANUAL.value, MCConfig.MIN_VALUE_ENTITY.value, MCIntDefaults.MIN.value))
 
     def get_current_max_value(self) -> int:
         """Return the current max value."""
-        return int(
-            self._get_value_from_config_or_entity(
-                MovingColorsConfig.MAX_VALUE_STATIC.value, MovingColorsConfig.MAX_VALUE_ENTITY.value, MovingColorsIntDefaults.MAX.value
-            )
-        )
+        return int(self._get_value_from_config_or_entity(MCInternal.MAX_VALUE_MANUAL.value, MCConfig.MAX_VALUE_ENTITY.value, MCIntDefaults.MAX.value))
 
     def set_current_value_update_callback(self, callback_func: Callable[[int], None]) -> None:
         """Set the callback function for current value updates."""
@@ -416,33 +460,33 @@ class MovingColorsManager:
 
     def _get_value_from_config_or_entity(self, static_key: str, entity_key: str, default_val: Any) -> Any:
         """Get value from a static or a dynamic config entry."""
-        if self._options.get(entity_key):
-            entity_id = self._options[entity_key]
+        if self._config.get(entity_key):
+            entity_id = self._config[entity_key]
             state = self.hass.states.get(entity_id)
             if state and state.state not in ["unavailable", "unknown"]:
                 try:
                     # For numerical values, convert state to float/int
                     if static_key in [
-                        MovingColorsConfig.START_VALUE_STATIC.value,
-                        MovingColorsConfig.MIN_VALUE_STATIC.value,
-                        MovingColorsConfig.MAX_VALUE_STATIC.value,
-                        MovingColorsConfig.STEPPING_STATIC.value,
-                        MovingColorsConfig.DEFAULT_VALUE_STATIC.value,
-                        MovingColorsConfig.STEPS_TO_DEFAULT_STATIC.value,
+                        MCInternal.START_VALUE_MANUAL.value,
+                        MCInternal.MIN_VALUE_MANUAL.value,
+                        MCInternal.MAX_VALUE_MANUAL.value,
+                        MCInternal.STEPPING_MANUAL.value,
+                        MCInternal.DEFAULT_VALUE_MANUAL.value,
+                        MCInternal.STEPS_TO_DEFAULT_MANUAL.value,
                     ]:
                         return float(state.state)  # Use float for calculations, convert to int at the end
                     # For boolean values
                     if static_key in [
-                        MovingColorsConfig.RANDOM_LIMITS_STATIC.value,
+                        MCInternal.RANDOM_LIMITS_MANUAL.value,
                         DEBUG_ENABLED,
-                        MovingColorsConfig.DEFAULT_MODE_ENABLED_STATIC.value,
+                        MCInternal.DEFAULT_MODE_ENABLED_MANUAL.value,
                     ]:
                         return state.state.lower() == "on" or state.state.lower() == "true" or state.state == "1"
                 except ValueError:
                     self.logger.warning("Could not convert state '%s' for entity '%s' to required type. Using static value.", state.state, entity_id)
             else:
                 self.logger.warning("Entity '%s' state is not available or unknown. Using static value.", entity_id)
-        return self._options.get(static_key, default_val)
+        return self._config.get(static_key, default_val)
 
     def async_start_update_task(self) -> None:  # Made async and renamed
         """Start the periodic update task."""
@@ -504,23 +548,15 @@ class MovingColorsManager:
 
         # Get current configuration values (refresh if from entity)
         min_value = int(
-            self._get_value_from_config_or_entity(
-                MovingColorsConfig.MIN_VALUE_STATIC.value, MovingColorsConfig.MIN_VALUE_ENTITY.value, MovingColorsIntDefaults.MIN.value
-            )
+            self._get_value_from_config_or_entity(MCInternal.MIN_VALUE_MANUAL.value, MCConfig.MIN_VALUE_ENTITY.value, MCIntDefaults.MIN.value)
         )
         max_value = int(
-            self._get_value_from_config_or_entity(
-                MovingColorsConfig.MAX_VALUE_STATIC.value, MovingColorsConfig.MAX_VALUE_ENTITY.value, MovingColorsIntDefaults.MAX.value
-            )
+            self._get_value_from_config_or_entity(MCInternal.MAX_VALUE_MANUAL.value, MCConfig.MAX_VALUE_ENTITY.value, MCIntDefaults.MAX.value)
         )
         stepping = int(
-            self._get_value_from_config_or_entity(
-                MovingColorsConfig.STEPPING_STATIC.value, MovingColorsConfig.STEPPING_ENTITY.value, MovingColorsIntDefaults.STEPPING.value
-            )
+            self._get_value_from_config_or_entity(MCInternal.STEPPING_MANUAL.value, MCConfig.STEPPING_ENTITY.value, MCIntDefaults.STEPPING.value)
         )
-        use_random = self._get_value_from_config_or_entity(
-            MovingColorsConfig.RANDOM_LIMITS_STATIC.value, MovingColorsConfig.RANDOM_LIMITS_ENTITY.value, True
-        )
+        use_random = self._get_value_from_config_or_entity(MCInternal.RANDOM_LIMITS_MANUAL.value, MCConfig.RANDOM_LIMITS_ENTITY.value, True)
 
         # For each channel, cycle independently
         new_values = self._current_values.copy()
@@ -593,6 +629,14 @@ class MovingColorsManager:
                 await self.hass.services.async_call("light", "turn_on", service_data)
             else:
                 self.logger.error("No target light entity ID configured for Moving Colors instance.")
+
+    def get_internal_entity_id(self, internal_enum: MCInternal) -> str:
+        """Get the internal entity_id for this instance."""
+        registry = entity_registry.async_get(self.hass)
+        unique_id = f"{self._entry_id}_{internal_enum.value.lower()}"
+        entity_id = registry.async_get_entity_id(internal_enum.domain, "shadow_control", unique_id)
+        self.logger.debug("Looking up internal entity_id for unique_id: %s -> %s", unique_id, entity_id)
+        return entity_id
 
 
 # Helper for dynamic log output
