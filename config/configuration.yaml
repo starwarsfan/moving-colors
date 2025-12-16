@@ -1,0 +1,26 @@
+
+# Loads default set of integrations. Do not remove.
+#default_config:
+
+# Load frontend themes from the themes folder
+frontend:
+  themes: !include_dir_merge_named themes
+
+#automation: !include automations.yaml
+automation: !include_dir_merge_list automations/
+script: !include scripts.yaml
+scene: !include scenes.yaml
+
+light:
+  - platform: template
+    lights:
+      my_manual_light:
+        friendly_name: "Manual Light"
+        turn_on:
+          service: script.turn_on
+          target:
+            entity_id: script.dummy
+        turn_off:
+          service: script.turn_off
+          target:
+            entity_id: script.dummy
