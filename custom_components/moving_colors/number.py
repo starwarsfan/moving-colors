@@ -33,12 +33,12 @@ async def async_setup_entry(
         MovingColorsNumber(
             hass,
             config_entry,
-            key=MCInternal.MAX_VALUE_MANUAL.value,
+            key=MCInternal.START_VALUE_MANUAL.value,
             instance_name=sanitized_instance_name,
             logger=instance_logger,
             description=NumberEntityDescription(
-                key=MCInternal.MAX_VALUE_MANUAL.value,
-                name="Max value",  # default (English) fallback if no translation found
+                key=MCInternal.START_VALUE_MANUAL.value,
+                name="Start value",  # default (English) fallback if no translation found
                 native_min_value=0.0,
                 native_max_value=255.0,
                 native_step=1.0,
@@ -56,6 +56,81 @@ async def async_setup_entry(
                 name="Min value",  # default (English) fallback if no translation found
                 native_min_value=0.0,
                 native_max_value=255.0,
+                native_step=1.0,
+                native_unit_of_measurement="",
+            ),
+        ),
+        MovingColorsNumber(
+            hass,
+            config_entry,
+            key=MCInternal.MAX_VALUE_MANUAL.value,
+            instance_name=sanitized_instance_name,
+            logger=instance_logger,
+            description=NumberEntityDescription(
+                key=MCInternal.MAX_VALUE_MANUAL.value,
+                name="Max value",  # default (English) fallback if no translation found
+                native_min_value=0.0,
+                native_max_value=255.0,
+                native_step=1.0,
+                native_unit_of_measurement="",
+            ),
+        ),
+        MovingColorsNumber(
+            hass,
+            config_entry,
+            key=MCInternal.STEPPING_MANUAL.value,
+            instance_name=sanitized_instance_name,
+            logger=instance_logger,
+            description=NumberEntityDescription(
+                key=MCInternal.STEPPING_MANUAL.value,
+                name="Stepping",  # default (English) fallback if no translation found
+                native_min_value=0.0,
+                native_max_value=25.0,
+                native_step=1.0,
+                native_unit_of_measurement="",
+            ),
+        ),
+        MovingColorsNumber(
+            hass,
+            config_entry,
+            key=MCInternal.TRIGGER_INTERVAL_MANUAL.value,
+            instance_name=sanitized_instance_name,
+            logger=instance_logger,
+            description=NumberEntityDescription(
+                key=MCInternal.TRIGGER_INTERVAL_MANUAL.value,
+                name="Trigger interval",  # default (English) fallback if no translation found
+                native_min_value=0.0,
+                native_max_value=300.0,
+                native_step=1.0,
+                native_unit_of_measurement="s",
+            ),
+        ),
+        MovingColorsNumber(
+            hass,
+            config_entry,
+            key=MCInternal.DEFAULT_VALUE_MANUAL.value,
+            instance_name=sanitized_instance_name,
+            logger=instance_logger,
+            description=NumberEntityDescription(
+                key=MCInternal.DEFAULT_VALUE_MANUAL.value,
+                name="Default value",  # default (English) fallback if no translation found
+                native_min_value=0.0,
+                native_max_value=255.0,
+                native_step=1.0,
+                native_unit_of_measurement="",
+            ),
+        ),
+        MovingColorsNumber(
+            hass,
+            config_entry,
+            key=MCInternal.STEPS_TO_DEFAULT_MANUAL.value,
+            instance_name=sanitized_instance_name,
+            logger=instance_logger,
+            description=NumberEntityDescription(
+                key=MCInternal.STEPS_TO_DEFAULT_MANUAL.value,
+                name="Steps to default value",  # default (English) fallback if no translation found
+                native_min_value=0.0,
+                native_max_value=25.0,
                 native_step=1.0,
                 native_unit_of_measurement="",
             ),
