@@ -27,44 +27,31 @@ def get_cfg_options() -> vol.Schema:
     """Get config options configuration schema."""
     return vol.Schema(
         {
-            # Target light entity or entities
             vol.Optional(TARGET_LIGHT_ENTITY_ID): selector.EntitySelector(selector.EntitySelectorConfig(domain="light", multiple=True)),
-            # Enable Moving Colors
             vol.Optional(MCConfig.ENABLED_ENTITY.value): selector.EntitySelector(
                 selector.EntitySelectorConfig(domain=["input_boolean", "binary_sensor"])
             ),
-            # Start from current position
-            # Start value
             vol.Optional(MCConfig.START_VALUE_ENTITY.value): selector.EntitySelector(
                 selector.EntitySelectorConfig(domain=["sensor", "input_number"])
             ),
-            # Minimal value
             vol.Optional(MCConfig.MIN_VALUE_ENTITY.value): selector.EntitySelector(selector.EntitySelectorConfig(domain=["sensor", "input_number"])),
-            # Maximal value
             vol.Optional(MCConfig.MAX_VALUE_ENTITY.value): selector.EntitySelector(selector.EntitySelectorConfig(domain=["sensor", "input_number"])),
-            # Stepping
             vol.Optional(MCConfig.STEPPING_ENTITY.value): selector.EntitySelector(selector.EntitySelectorConfig(domain=["sensor", "input_number"])),
-            # Trigger interval
             vol.Optional(MCConfig.TRIGGER_INTERVAL_ENTITY.value): selector.EntitySelector(
                 selector.EntitySelectorConfig(domain=["sensor", "input_number"])
             ),
-            # Random limits on/off
             vol.Optional(MCConfig.RANDOM_LIMITS_ENTITY.value): selector.EntitySelector(
                 selector.EntitySelectorConfig(domain=["input_boolean", "binary_sensor"])
             ),
-            # Default value
             vol.Optional(MCConfig.DEFAULT_VALUE_ENTITY.value): selector.EntitySelector(
                 selector.EntitySelectorConfig(domain=["sensor", "input_number"])
             ),
-            # Enable default mode
             vol.Optional(MCConfig.DEFAULT_MODE_ENABLED_ENTITY.value): selector.EntitySelector(
                 selector.EntitySelectorConfig(domain=["input_boolean", "binary_sensor"])
             ),
-            # Steps to default value
             vol.Optional(MCConfig.STEPS_TO_DEFAULT_ENTITY.value): selector.EntitySelector(
                 selector.EntitySelectorConfig(domain=["sensor", "input_number"])
             ),
-            # Enable debug mode
             vol.Optional(DEBUG_ENABLED, default=False): selector.BooleanSelector(),
         }
     )
