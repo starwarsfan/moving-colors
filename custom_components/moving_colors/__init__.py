@@ -11,7 +11,8 @@ import homeassistant.util.dt as dt_util
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     EVENT_HOMEASSISTANT_STARTED,
-    Platform, STATE_ON,
+    STATE_ON,
+    Platform,
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import entity_registry
@@ -317,57 +318,64 @@ class MovingColorsManager:
         # V5: remaining steps to default
         self._remaining_steps_to_default: int | None = None
 
-        # Pre-fetch initial static values from config
-        self._debug_enabled_static = self._config.get(DEBUG_ENABLED, False)
-        self._start_from_current_position = self._config.get(MCConfig.START_FROM_CURRENT_POSITION_ENTITY.value, True)
-        self._start_value = self._config.get(MCInternal.START_VALUE_MANUAL.value, MCIntDefaults.START.value)
-        self._min_value = self._config.get(MCInternal.MIN_VALUE_MANUAL.value, MCIntDefaults.MIN.value)
-        self._max_value = self._config.get(MCInternal.MAX_VALUE_MANUAL.value, MCIntDefaults.MAX.value)
-        self._random_limits = self._config.get(MCInternal.RANDOM_LIMITS_MANUAL.value, True)
-        self._default_value = self._config.get(MCInternal.DEFAULT_VALUE_MANUAL.value, MCIntDefaults.DEFAULT_END.value)
-        self._default_mode_enabled = self._config.get(MCInternal.DEFAULT_MODE_ENABLED_MANUAL.value, False)
-        self._steps_to_default = self._config.get(MCInternal.STEPS_TO_DEFAULT_MANUAL.value, MCIntDefaults.STEPS_TO_DEFAULT_END.value)
-
-        # Store entity IDs for dynamic values
-        self._start_value_entity = self._config.get(MCConfig.START_VALUE_ENTITY.value)
-        self._min_value_entity = self._config.get(MCConfig.MIN_VALUE_ENTITY.value)
-        self._max_value_entity = self._config.get(MCConfig.MAX_VALUE_ENTITY.value)
-        self._random_limits_entity = self._config.get(MCConfig.RANDOM_LIMITS_ENTITY.value)
-        self._default_value_entity = self._config.get(MCConfig.DEFAULT_VALUE_ENTITY.value)
-        self._default_mode_enabled_entity = self._config.get(MCConfig.DEFAULT_MODE_ENABLED_ENTITY.value)
-        self._steps_to_default_entity = self._config.get(MCConfig.STEPS_TO_DEFAULT_ENTITY.value)
-
         # Initialize internal state based on start value
-        self._current_value = self._get_value_from_config_or_entity(
-            MCInternal.START_VALUE_MANUAL.value, MCConfig.START_VALUE_ENTITY.value, default_val=MCIntDefaults.START.value
+        start_from_current_position_manual = self.get_internal_entity_id(MCInternal.START_FROM_CURRENT_POSITION_MANUAL)
+        start_from_current_position_value = (
+            self._get_internal_entity_state_value(start_from_current_position_manual, True, bool) if start_from_current_position_manual else True
         )
+        self._start_from_current_position = self._get_entity_state_value(
+            MCConfig.START_FROM_CURRENT_POSITION_ENTITY.value, start_from_current_position_value, bool
+        )
+
+        steps_to_default_manual = self.get_internal_entity_id(MCInternal.START_VALUE_MANUAL)
+        steps_to_default_value = (
+            self._get_internal_entity_state_value(steps_to_default_manual, MCIntDefaults.START.value, float)
+            if steps_to_default_manual
+            else MCIntDefaults.START.value
+        )
+        self._current_value = self._get_entity_state_value(MCConfig.START_VALUE_ENTITY.value, steps_to_default_value, float)
+
         if self._start_from_current_position:
             self._current_value = self._get_brightness_of_first_light_entity()
 
         self._count_up = True  # Initial direction
-        self._remaining_steps_to_default = self._get_value_from_config_or_entity(
-            MCInternal.STEPS_TO_DEFAULT_MANUAL.value,
-            MCConfig.STEPS_TO_DEFAULT_ENTITY.value,
-            default_val=MCIntDefaults.STEPS_TO_DEFAULT_END.value,
+
+        steps_to_default_manual = self.get_internal_entity_id(MCInternal.STEPS_TO_DEFAULT_MANUAL)
+        steps_to_default_value = (
+            self._get_internal_entity_state_value(steps_to_default_manual, MCIntDefaults.STEPS_TO_DEFAULT_END.value, float)
+            if steps_to_default_manual
+            else MCIntDefaults.STEPS_TO_DEFAULT_END.value
         )
-        self._current_lower_boundary = self._get_value_from_config_or_entity(
-            MCInternal.MIN_VALUE_MANUAL.value, MCConfig.MIN_VALUE_ENTITY.value, default_val=MCIntDefaults.MIN.value
+        self._remaining_steps_to_default = self._get_entity_state_value(MCConfig.STEPS_TO_DEFAULT_ENTITY.value, steps_to_default_value, float)
+
+        min_value_manual = self.get_internal_entity_id(MCInternal.MIN_VALUE_MANUAL)
+        min_value_value = (
+            self._get_internal_entity_state_value(min_value_manual, MCIntDefaults.MIN.value, float) if min_value_manual else MCIntDefaults.MIN.value
         )
-        self._current_upper_boundary = self._get_value_from_config_or_entity(
-            MCInternal.MAX_VALUE_MANUAL.value, MCConfig.MAX_VALUE_ENTITY.value, default_val=MCIntDefaults.MAX.value
+        self._current_lower_boundary = self._get_entity_state_value(MCConfig.MIN_VALUE_ENTITY.value, min_value_value, float)
+
+        max_value_manual = self.get_internal_entity_id(MCInternal.MAX_VALUE_MANUAL)
+        max_value_value = (
+            self._get_internal_entity_state_value(max_value_manual, MCIntDefaults.MAX.value, float) if max_value_manual else MCIntDefaults.MAX.value
         )
+        self._current_upper_boundary = self._get_entity_state_value(MCConfig.MAX_VALUE_ENTITY.value, max_value_value, float)
 
         # Get stepping and trigger interval values
-        self._stepping = int(
-            self._get_value_from_config_or_entity(MCInternal.STEPPING_MANUAL.value, MCConfig.STEPPING_ENTITY.value, MCIntDefaults.STEPPING.value)
+        stepping_manual = self.get_internal_entity_id(MCInternal.STEPPING_MANUAL)
+        stepping_value = (
+            self._get_internal_entity_state_value(stepping_manual, MCIntDefaults.STEPPING.value, float)
+            if stepping_manual
+            else MCIntDefaults.STEPPING.value
         )
-        self._trigger_interval = int(
-            self._get_value_from_config_or_entity(
-                MCInternal.TRIGGER_INTERVAL_MANUAL.value,
-                MCConfig.TRIGGER_INTERVAL_ENTITY.value,
-                MCIntDefaults.TRIGGER_INTERVAL.value,
-            )
+        self._stepping = self._get_entity_state_value(MCConfig.STEPPING_ENTITY.value, stepping_value, float)
+
+        trigger_interval_manual = self.get_internal_entity_id(MCInternal.TRIGGER_INTERVAL_MANUAL)
+        trigger_interval_value = (
+            self._get_internal_entity_state_value(trigger_interval_manual, MCIntDefaults.TRIGGER_INTERVAL.value, float)
+            if trigger_interval_manual
+            else MCIntDefaults.TRIGGER_INTERVAL.value
         )
+        self._stepping = self._get_entity_state_value(MCConfig.TRIGGER_INTERVAL_ENTITY.value, trigger_interval_value, float)
 
         # Callback for sensor updates
         self._current_value_update_callback: Callable[[int], None] | None = None
@@ -446,9 +454,7 @@ class MovingColorsManager:
     def is_enabled(self) -> bool:
         """Return True if Moving Colors should be active."""
         mc_enabled_manual = self.get_internal_entity_id(MCInternal.ENABLED_MANUAL)
-        mc_enabled_value = (
-            self._get_internal_entity_state_value(mc_enabled_manual, True, bool) if mc_enabled_manual else True
-        )
+        mc_enabled_value = self._get_internal_entity_state_value(mc_enabled_manual, True, bool) if mc_enabled_manual else True
         return self._get_entity_state_value(MCConfig.ENABLED_ENTITY.value, mc_enabled_value, bool)
 
     def _get_entity_state_value(self, key: str, default: Any, expected_type: type, log_warning: bool = True) -> Any:
@@ -497,7 +503,6 @@ class MovingColorsManager:
                     default,
                 )
             return default
-
 
     def get_current_value(self) -> int:
         """Return the current calculated value."""
@@ -620,14 +625,14 @@ class MovingColorsManager:
 
         stepping_manual = self.get_internal_entity_id(MCInternal.STEPPING_MANUAL)
         stepping_value = (
-            self._get_internal_entity_state_value(stepping_manual, MCIntDefaults.STEPPING.value, float) if stepping_manual else MCIntDefaults.STEPPING.value
+            self._get_internal_entity_state_value(stepping_manual, MCIntDefaults.STEPPING.value, float)
+            if stepping_manual
+            else MCIntDefaults.STEPPING.value
         )
         stepping = self._get_entity_state_value(MCConfig.STEPPING_ENTITY.value, stepping_value, float)
 
         use_random_manual = self.get_internal_entity_id(MCInternal.RANDOM_LIMITS_MANUAL)
-        use_random_value = (
-            self._get_internal_entity_state_value(use_random_manual, False, bool) if use_random_manual else False
-        )
+        use_random_value = self._get_internal_entity_state_value(use_random_manual, False, bool) if use_random_manual else False
         use_random = self._get_entity_state_value(MCConfig.RANDOM_LIMITS_ENTITY.value, use_random_value, bool)
 
         # For each channel, cycle independently
