@@ -6,11 +6,33 @@
         "data": {
           "name": "Instanzname",
           "target_light_entity": "Licht-Entitäten",
+          "enabled_entity": "Moving Colors aktivieren",
+          "start_value_entity": "Startwert",
+          "min_value_entity": "Minimalwert",
+          "max_value_entity": "Maximalwert",
+          "stepping_entity": "Schrittweite",
+          "trigger_interval_entity": "Trigger-Intervall",
+          "random_limits_entity": "Zufallsgrenzen",
+          "default_value_entity": "Standardwert",
+          "default_mode_enabled_entity": "Standardmodus aktivieren",
+          "start_from_current_position_entity": "Farbwert von aktueller Position starten",
+          "steps_to_default_entity": "Schritte zum Standardwert",
           "debug_enabled": "Debug-Modus"
         },
         "data_description": {
           "name": "Eindeutiger Name dieser Moving Colors Instanz.",
           "target_light_entity": "Eine oder mehrere Licht-Entitäten, welche mit dieser Moving Colors Instanz gesteuert werden sollen.",
+          "enabled_entity": "De-/Aktivieren der Moving Colors Instanz via Entität.",
+          "start_value_entity": "Bei welchem Farbwert soll die Moving Colors Instanz starten, via Entität.",
+          "min_value_entity": "Minimaler Farbwert, bei welchem die Moving Colors Instanz starten soll, via Entität.",
+          "max_value_entity": "Maximaler Farbwert, bis zu welchem die Moving Colors Instanz gehen soll, via Entität.",
+          "stepping_entity": "Schrittweite, um welchen der Farbwert pro Durchlauf via Entität erhöht oder verringert werden soll.",
+          "trigger_interval_entity": "Intervall in Sekunden via Entität, in welchem die Moving Colors Instanz den Farbwert aktualisieren soll.",
+          "random_limits_entity": "Verwendung zufälliger Grenzen via Entität aktivieren.",
+          "default_value_entity": "Standardwert beim Beenden des Farbwechsels via Entität.",
+          "default_mode_enabled_entity": "Verwendung des Standardmodus via Entität aktivieren.",
+          "start_from_current_position_entity": "Wenn aktiviert, wird der Farbverlauf von der jeweils gerade aktiven Farb-Position gestartet.",
+          "steps_to_default_entity": "Schritte bis zum Standardwert via Entität, wenn der Standardmodus aktiviert ist und der Farbwechsel deaktiviert wird.",
           "debug_enabled": "Debug-Logs für diese Instanz aktivieren."
         }
       },
@@ -33,54 +55,32 @@
       "user": {
         "description": "Hier wird konfiguriert, wie sich der Farbverlauf verhalten soll und wie er gesteuert wird.",
         "data": {
-          "name": "Instanzname",
-          "target_light_entity": "Behang-Entität",
-          "enabled_static": "Moving Colors aktivieren",
+          "target_light_entity": "Licht-Entitäten",
           "enabled_entity": "Moving Colors aktivieren",
-          "start_from_current_position": "Farbwert von aktueller Position starten",
-          "start_value_static": "Startwert",
           "start_value_entity": "Startwert",
-          "min_value_static": "Minimalwert",
           "min_value_entity": "Minimalwert",
-          "max_value_static": "Maximalwert",
           "max_value_entity": "Maximalwert",
-          "stepping_static": "Schrittweite",
           "stepping_entity": "Schrittweite",
-          "trigger_interval_static": "Trigger-Intervall",
           "trigger_interval_entity": "Trigger-Intervall",
-          "random_limits_static": "Zufallsgrenzen",
           "random_limits_entity": "Zufallsgrenzen",
-          "default_value_static": "Standardwert",
           "default_value_entity": "Standardwert",
-          "default_mode_enabled_static": "Standardmodus aktivieren",
           "default_mode_enabled_entity": "Standardmodus aktivieren",
-          "steps_to_default_static": "Schritte zum Standardwert",
+          "start_from_current_position_entity": "Farbwert von aktueller Position starten",
           "steps_to_default_entity": "Schritte zum Standardwert",
           "debug_enabled": "Debug-Modus"
         },
         "data_description": {
-          "name": "Eindeutiger Name dieser Moving Colors Instanz",
-          "target_light_entity": "Licht-Entität(en), welche mit dieser Moving Colors Instanz gehandhabt werden soll(en).",
-          "enabled_static": "Dauerhaftes de-/aktivieren der Moving Colors Instanz.",
+          "target_light_entity": "Eine oder mehrere Licht-Entitäten, welche mit dieser Moving Colors Instanz gesteuert werden sollen.",
           "enabled_entity": "De-/Aktivieren der Moving Colors Instanz via Entität.",
-          "start_from_current_position": "Wenn aktiviert, wird der Farbverlauf von der jeweils gerade aktiven Farb-Position gestartet.",
-          "start_value_static": "Bei welchem Farbwert soll die Moving Colors Instanz starten.",
           "start_value_entity": "Bei welchem Farbwert soll die Moving Colors Instanz starten, via Entität.",
-          "min_value_static": "Minimaler Farbwert, bei welchem die Moving Colors Instanz starten soll.",
           "min_value_entity": "Minimaler Farbwert, bei welchem die Moving Colors Instanz starten soll, via Entität.",
-          "max_value_static": "Maximaler Farbwert, bis zu welchem die Moving Colors Instanz gehen soll.",
           "max_value_entity": "Maximaler Farbwert, bis zu welchem die Moving Colors Instanz gehen soll, via Entität.",
-          "stepping_static": "Schrittweite, um welchen der Farbwert pro Durchlauf erhöht oder verringert werden soll.",
           "stepping_entity": "Schrittweite, um welchen der Farbwert pro Durchlauf via Entität erhöht oder verringert werden soll.",
-          "trigger_interval_static": "Intervall in Sekunden, in welchem die Moving Colors Instanz den Farbwert aktualisieren soll.",
           "trigger_interval_entity": "Intervall in Sekunden via Entität, in welchem die Moving Colors Instanz den Farbwert aktualisieren soll.",
-          "random_limits_static": "Verwendung zufälliger Grenzen aktivieren",
           "random_limits_entity": "Verwendung zufälliger Grenzen via Entität aktivieren.",
-          "default_value_static": "Standardwert beim Beenden des Farbwechsels.",
           "default_value_entity": "Standardwert beim Beenden des Farbwechsels via Entität.",
-          "default_mode_enabled_static": "Verwendung des Standardmodus aktivieren.",
           "default_mode_enabled_entity": "Verwendung des Standardmodus via Entität aktivieren.",
-          "steps_to_default_static": "Schritte bis zum Standardwert, wenn der Standardmodus aktiviert ist und der Farbwechsel deaktiviert wird.",
+          "start_from_current_position_entity": "Wenn aktiviert, wird der Farbverlauf von der jeweils gerade aktiven Farb-Position gestartet.",
           "steps_to_default_entity": "Schritte bis zum Standardwert via Entität, wenn der Standardmodus aktiviert ist und der Farbwechsel deaktiviert wird.",
           "debug_enabled": "Debug-Logs für diese Instanz aktivieren."
         }
@@ -100,6 +100,29 @@
     }
   },
   "entity": {
+    "number": {
+      "start_value_manual": {
+        "name": "Startwert"
+      },
+      "min_value_manual": {
+        "name": "Minimalwert"
+      },
+      "max_value_manual": {
+        "name": "Maximalwert"
+      },
+      "stepping_manual": {
+        "name": "Schrittweite"
+      },
+      "trigger_interval_manual": {
+        "name": "Trigger-Intervall"
+      },
+      "default_value_manual": {
+        "name": "Standardwert"
+      },
+      "steps_to_default_manual": {
+        "name": "Schritte zum Standardwert"
+      }
+    },
     "sensor": {
       "current_value": {
         "name": "Aktueller Farbwert"
@@ -115,8 +138,17 @@
       "debug_enabled": {
         "name": "Debug-Modus"
       },
-      "enabled_static": {
+      "default_mode_enabled_manual": {
+        "name": "Standardmodus aktivieren"
+      },
+      "enabled_manual": {
         "name": "Farbwechsel aktivieren"
+      },
+      "random_limits_manual": {
+        "name": "Zufallsgrenzen"
+      },
+      "start_from_current_position_entity_manual": {
+        "name": "Von aktueller Farbe starten"
       }
     }
   }

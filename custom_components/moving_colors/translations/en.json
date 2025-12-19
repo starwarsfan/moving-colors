@@ -6,12 +6,34 @@
         "data": {
           "name": "Instance name",
           "target_light_entity": "Light entities",
-          "debug_enabled": "Debug logs"
+          "enabled_entity": "Enable Moving Colors",
+          "start_value_entity": "Start value",
+          "min_value_entity": "Minimum value",
+          "max_value_entity": "Maximum value",
+          "stepping_entity": "Step value",
+          "trigger_interval_entity": "Trigger intervall",
+          "random_limits_entity": "Random limits",
+          "default_value_entity": "Default value",
+          "default_mode_enabled_entity": "Activate default mode",
+          "start_from_current_position_entity": "Start color value from current position",
+          "steps_to_default_entity": "Steps to default value",
+          "debug_enabled": "Debug mode"
         },
         "data_description": {
           "name": "A descriptive and unique name for this Moving Colors instance.",
-          "target_light_entity": "Covers which should be handled by this Moving Colors instance.",
-          "debug_enabled": "Activate debug logs for this instance."
+          "target_light_entity": "Light entity, which should be handled by this Moving Colors instance.",
+          "enabled_entity": "Enable Moving Colors for this instance based on an entity state.",
+          "start_value_entity": "Start value for the color transition based on an entity state.",
+          "min_value_entity": "Minimum value for the color transition based on an entity state.",
+          "max_value_entity": "Maximum value for the color transition based on an entity state.",
+          "stepping_entity": "Step value for the color transition based on an entity state.",
+          "trigger_interval_entity": "Trigger interval from an entity state in seconds for the color transition.",
+          "random_limits_entity": "Random limits for the color transition based on an entity state.",
+          "default_value_entity": "Default value after disabled color transition based on an entity state.",
+          "default_mode_enabled_entity": "Enable default mode for the color transition based on an entity state.",
+          "start_from_current_position_entity": "Start color value from current position instead of the configured start value.",
+          "steps_to_default_entity": "Steps to reach the default value after disabling the color transition based on an entity state.",
+          "debug_enabled": "Activate debug logs for this instance"
         }
       },
       "options": {
@@ -33,54 +55,32 @@
       "user": {
         "description": "Configure behavior of the color transition and how it is controlled.",
         "data": {
-          "name": "Instance name",
-          "target_light_entity": "Cover to maintain",
-          "enabled_static": "Enable Moving Colors",
+          "target_light_entity": "Light entities",
           "enabled_entity": "Enable Moving Colors",
-          "start_from_current_position": "Start color value from current position",
-          "start_value_static": "Start value",
           "start_value_entity": "Start value",
-          "min_value_static": "Minimum value",
           "min_value_entity": "Minimum value",
-          "max_value_static": "Maximum value",
           "max_value_entity": "Maximum value",
-          "stepping_static": "Step value",
           "stepping_entity": "Step value",
-          "trigger_interval_static": "Trigger intervall",
           "trigger_interval_entity": "Trigger intervall",
-          "random_limits_static": "Random limits",
           "random_limits_entity": "Random limits",
-          "default_value_static": "Default value",
           "default_value_entity": "Default value",
-          "default_mode_enabled_static": "Activate default mode",
           "default_mode_enabled_entity": "Activate default mode",
-          "steps_to_default_static": "Steps to default value",
+          "start_from_current_position_entity": "Start color value from current position",
           "steps_to_default_entity": "Steps to default value",
-          "debug_enabled": "Debug logs"
+          "debug_enabled": "Debug mode"
         },
         "data_description": {
-          "name": "A descriptive and unique name for this Moving Colors instance.",
           "target_light_entity": "Light entity, which should be handled by this Moving Colors instance.",
-          "enabled_static": "Permanently enable Moving Colors for this instance.",
           "enabled_entity": "Enable Moving Colors for this instance based on an entity state.",
-          "start_from_current_position": "Start color value from current position instead of the configured start value.",
-          "start_value_static": "Start value for the color transition.",
           "start_value_entity": "Start value for the color transition based on an entity state.",
-          "min_value_static": "Minimum value for the color transition.",
           "min_value_entity": "Minimum value for the color transition based on an entity state.",
-          "max_value_static": "Maximum value for the color transition.",
           "max_value_entity": "Maximum value for the color transition based on an entity state.",
-          "stepping_static": "Step value for the color transition.",
           "stepping_entity": "Step value for the color transition based on an entity state.",
-          "trigger_interval_static": "Trigger interval in seconds for the color transition.",
           "trigger_interval_entity": "Trigger interval from an entity state in seconds for the color transition.",
-          "random_limits_static": "Random limits for the color transition.",
           "random_limits_entity": "Random limits for the color transition based on an entity state.",
-          "default_value_static": "Default value after disabled color transition.",
           "default_value_entity": "Default value after disabled color transition based on an entity state.",
-          "default_mode_enabled_static": "Enable default mode for the color transition.",
           "default_mode_enabled_entity": "Enable default mode for the color transition based on an entity state.",
-          "steps_to_default_static": "Steps to reach the default value after disabling the color transition.",
+          "start_from_current_position_entity": "Start color value from current position instead of the configured start value.",
           "steps_to_default_entity": "Steps to reach the default value after disabling the color transition based on an entity state.",
           "debug_enabled": "Activate debug logs for this instance"
         }
@@ -100,6 +100,29 @@
     }
   },
   "entity": {
+    "number": {
+      "start_value_manual": {
+        "name": "Start value"
+      },
+      "min_value_manual": {
+        "name": "Minimum value"
+      },
+      "max_value_manual": {
+        "name": "Maximum value"
+      },
+      "stepping_manual": {
+        "name": "Step value"
+      },
+      "trigger_interval_manual": {
+        "name": "Trigger intervall"
+      },
+      "default_value_manual": {
+        "name": "Default value"
+      },
+      "steps_to_default_manual": {
+        "name": "Steps to default value"
+      }
+    },
     "sensor": {
       "current_value": {
         "name": "Current color value"
@@ -113,10 +136,19 @@
     },
     "switch": {
       "debug_enabled": {
-        "name": "Debug Mode"
+        "name": "Debug mode"
       },
-      "enabled_static": {
+      "default_mode_enabled_manual": {
+        "name": "Activate default mode"
+      },
+      "enabled_manual": {
         "name": "Enable Moving Colors"
+      },
+      "random_limits_manual": {
+        "name": "Random limits"
+      },
+      "start_from_current_position_entity_manual": {
+        "name": "Star from current color"
       }
     }
   }
