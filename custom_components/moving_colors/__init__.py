@@ -161,7 +161,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # =================================================================
 
     # Hand over the combined configuration dictionary to the MovingColorsManager
-    manager = MovingColorsManager(hass, config_data, entry.entry_id, instance_specific_logger)
+    manager = MovingColorsManager(hass, entry, instance_specific_logger)
 
     # =================================================================
     # After HA was started, the new internal entities exist.
@@ -283,6 +283,15 @@ class MovingColorsManager:
 
         self.name = self._config.get(MC_CONF_NAME)
         self._target_light_entity_id = self._config.get(TARGET_LIGHT_ENTITY_ID)
+
+        # Sanitize instance name
+        # 1. Replace spaces with underscores
+        # 2. All lowercase
+        # 3. Remove all characters that are not alphanumeric or underscores
+        sanitized_instance_name = re.sub(r"\s+", "_", self.name).lower()
+        sanitized_instance_name = re.sub(r"[^a-z0-9_]", "", sanitized_instance_name)
+        self.sanitized_name = sanitized_instance_name
+        self.logger.debug("Sanitized instance name from %s to %s", self.name, self.sanitized_name)
 
         # Check if critical values are missing, even if this might be done within async_setup_entry
         if not self.name:
