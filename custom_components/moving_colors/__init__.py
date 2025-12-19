@@ -498,7 +498,7 @@ class MovingColorsManager:
             return
         interval = timedelta(seconds=self._trigger_interval)
         self.logger.debug("Starting periodic update task with interval %s.", interval)
-        self._update_listener = async_track_time_interval(self.hass, self._async_update_moving_colors_state, interval)
+        self._update_listener = async_track_time_interval(self.hass, self.async_update_state, interval)
         self._unsub_callbacks.append(self._update_listener)
 
     def stop_update_task(self) -> None:
@@ -537,9 +537,11 @@ class MovingColorsManager:
             self._current_values = {"brightness": brightness}
         self.logger.debug("Detected color mode: %s, initial values: %s", self._color_mode, self._current_values)
 
-    @callback
-    async def _async_update_moving_colors_state(self, now: dt_util.dt.datetime) -> None:
+    async def async_update_state(self, now: dt_util.dt.datetime | None = None) -> None:
         """Calculate the next dimming value(s) and update the light entity."""
+        if now is None:
+            now = dt_util.utcnow()
+
         self.logger.debug("Moving Colors update triggered at %s.", now)
 
         if not self.is_enabled():
@@ -629,6 +631,16 @@ class MovingColorsManager:
                 await self.hass.services.async_call("light", "turn_on", service_data)
             else:
                 self.logger.error("No target light entity ID configured for Moving Colors instance.")
+
+    async def async_refresh(self) -> None:
+        """Handle a state change from the switches."""
+        # Check if we need to start or stop the periodic task
+        if self.is_enabled():
+            if not self._update_listener:
+                self.async_start_update_task()
+            await self.async_update_state()
+        else:
+            self.stop_update_task()
 
     def get_internal_entity_id(self, internal_enum: MCInternal) -> str:
         """Get the internal entity_id for this instance."""

@@ -307,4 +307,4 @@ class MovingColorsSwitch(SwitchEntity, RestoreEntity):
             self._state = last_state.state == "on"
 
     async def _notify_integration(self) -> None:
-        await self.hass.data[DOMAIN_DATA_MANAGERS][self._config_entry.entry_id].async_calculate_and_apply_cover_position(None)
+        await self.hass.data[DOMAIN_DATA_MANAGERS][self._config_entry.entry_id].async_refresh()
