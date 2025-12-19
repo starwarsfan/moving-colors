@@ -124,14 +124,47 @@
       }
     },
     "sensor": {
-      "current_value": {
+      "sensor_current_value": {
         "name": "Current color value"
       },
-      "current_min_value": {
+      "sensor_current_min_value": {
         "name": "Current minimum value"
       },
-      "current_max_value": {
+      "sensor_current_max_value": {
         "name": "Current maximum value"
+      },
+      "sensor_enabled_entity": {
+        "name": "Activated"
+      },
+      "sensor_start_value_entity": {
+        "name": "Start value"
+      },
+      "sensor_min_value_entity": {
+        "name": "Min value"
+      },
+      "sensor_max_value_entity": {
+        "name": "Max value"
+      },
+      "sensor_stepping_entity": {
+        "name": "Stepping"
+      },
+      "sensor_trigger_interval_entity": {
+        "name": "Interval"
+      },
+      "sensor_random_limits_entity": {
+        "name": "Random limits"
+      },
+      "sensor_default_value_entity": {
+        "name": "Default value"
+      },
+      "sensor_default_mode_enabled_entity": {
+        "name": "Default mode activated"
+      },
+      "sensor_start_from_current_position_entity": {
+        "name": "Start from current color"
+      },
+      "sensor_steps_to_default_entity": {
+        "name": "Steps to default value"
       }
     },
     "switch": {
@@ -147,7 +180,7 @@
       "random_limits_manual": {
         "name": "Random limits"
       },
-      "start_from_current_position_entity_manual": {
+      "start_from_current_position_manual": {
         "name": "Star from current color"
       }
     }

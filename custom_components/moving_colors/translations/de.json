@@ -124,14 +124,47 @@
       }
     },
     "sensor": {
-      "current_value": {
+      "sensor_current_value": {
         "name": "Aktueller Farbwert"
       },
-      "current_min_value": {
+      "sensor_current_min_value": {
         "name": "Aktueller Minimalwert"
       },
-      "current_max_value": {
+      "sensor_current_max_value": {
         "name": "Aktueller Maximalwert"
+      },
+      "sensor_enabled_entity": {
+        "name": "Aktiviert"
+      },
+      "sensor_start_value_entity": {
+        "name": "Startwert"
+      },
+      "sensor_min_value_entity": {
+        "name": "Minimalwert"
+      },
+      "sensor_max_value_entity": {
+        "name": "Maximalwert"
+      },
+      "sensor_stepping_entity": {
+        "name": "Schrittweite"
+      },
+      "sensor_trigger_interval_entity": {
+        "name": "Interval"
+      },
+      "sensor_random_limits_entity": {
+        "name": "Zufällige Grenzen"
+      },
+      "sensor_default_value_entity": {
+        "name": "Standardwert"
+      },
+      "sensor_default_mode_enabled_entity": {
+        "name": "Standardmodus aktiviert"
+      },
+      "sensor_start_from_current_position_entity": {
+        "name": "Startwert von aktueller Position"
+      },
+      "sensor_steps_to_default_entity": {
+        "name": "Schritte bis Standardwert"
       }
     },
     "switch": {
@@ -147,7 +180,7 @@
       "random_limits_manual": {
         "name": "Zufallsgrenzen"
       },
-      "start_from_current_position_entity_manual": {
+      "start_from_current_position_manual": {
         "name": "Von aktueller Farbe starten"
       }
     }
