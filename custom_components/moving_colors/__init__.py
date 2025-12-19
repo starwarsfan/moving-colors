@@ -659,6 +659,7 @@ class MovingColorsManager:
         self.logger.debug("Looking up internal entity_id for unique_id: %s -> %s", unique_id, entity_id)
         return entity_id
 
+
 # Helper for dynamic log output
 def _format_config_object_for_logging(obj, prefix: str = "") -> str:
     """Format the public attributes of a given configuration object into one string."""
