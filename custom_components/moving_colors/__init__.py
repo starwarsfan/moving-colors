@@ -11,7 +11,7 @@ import homeassistant.util.dt as dt_util
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     EVENT_HOMEASSISTANT_STARTED,
-    Platform,
+    Platform, STATE_ON,
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import entity_registry
@@ -381,10 +381,13 @@ class MovingColorsManager:
 
     async def async_start(self) -> None:
         """Start the Moving Colors manager's operations."""
-        self.logger.debug("Calling async_start for MovingColorsManager.")
-        self._setup_enabled_listener()
-        if self.is_enabled():
-            self.async_start_update_task()
+        if not self.is_enabled():
+            self.logger.info("Moving Colors '%s' is disabled. Waiting for activation.", self.name)
+            return
+
+        self.logger.debug("Starting Moving Colors instance loop.")
+        await self.async_update_state()
+        self.async_start_update_task()
 
     async def async_stop(self) -> None:
         """Stop the Moving Colors manager's operations."""
@@ -442,14 +445,59 @@ class MovingColorsManager:
 
     def is_enabled(self) -> bool:
         """Return True if Moving Colors should be active."""
-        # Prefer entity if set
-        if self._config.get(MCConfig.ENABLED_ENTITY.value):
-            entity_id = self._config[MCConfig.ENABLED_ENTITY.value]
-            state = self.hass.states.get(entity_id)
-            if state and state.state not in ["unavailable", "unknown"]:
-                return state.state.lower() in ["on", "true", "1"]
-        # Fallback to the static option
-        return self._config.get(MCInternal.ENABLED_MANUAL.value, True)
+        mc_enabled_manual = self.get_internal_entity_id(MCInternal.ENABLED_MANUAL)
+        mc_enabled_value = (
+            self._get_internal_entity_state_value(mc_enabled_manual, True, bool) if mc_enabled_manual else True
+        )
+        return self._get_entity_state_value(MCConfig.ENABLED_ENTITY.value, mc_enabled_value, bool)
+
+    def _get_entity_state_value(self, key: str, default: Any, expected_type: type, log_warning: bool = True) -> Any:
+        """Extract dynamic value from an entity state."""
+        # Type conversion and default will be handled
+        entity_id = self._config.get(key)  # This will be the string entity_id or None
+        return self._get_state_value(entity_id=entity_id, default=default, expected_type=expected_type, log_warning=log_warning)
+
+    def _get_internal_entity_state_value(self, entity_id: str, default: Any, expected_type: type, log_warning: bool = True) -> Any:
+        """Extract dynamic value from an entity state."""
+        return self._get_state_value(entity_id=entity_id, default=default, expected_type=expected_type, log_warning=log_warning)
+
+    def _get_state_value(self, entity_id: str, default: Any, expected_type: type, log_warning: bool = True) -> Any:
+        """Extract dynamic value from an entity state."""
+        if entity_id in [None, "none"]:
+            # Directly return the default value for None or "none" without logging warnings
+            return default
+
+        if not isinstance(entity_id, str):
+            if log_warning:
+                self.logger.warning("Invalid entity_id: %s. Using default: %s", entity_id, default)
+            return default
+
+        state = self.hass.states.get(entity_id)
+
+        if state is None or state.state in ["unavailable", "unknown"]:
+            if log_warning:
+                self.logger.debug("Entity '%s' is unavailable or unknown. Using default: %s", entity_id, default)
+            return default
+
+        try:
+            if expected_type is bool:
+                return state.state == STATE_ON
+            if expected_type is int:
+                return int(float(state.state))  # Handle cases where state might be "10.0"
+            if expected_type is float:
+                return float(state.state)
+            return expected_type(state.state)
+        except (ValueError, TypeError):
+            if log_warning:
+                self.logger.warning(
+                    "Failed to convert state '%s' of entity '%s' to type %s. Using default: %s",
+                    state.state,
+                    entity_id,
+                    expected_type.__name__,
+                    default,
+                )
+            return default
+
 
     def get_current_value(self) -> int:
         """Return the current calculated value."""
@@ -551,23 +599,36 @@ class MovingColorsManager:
         if now is None:
             now = dt_util.utcnow()
 
-        self.logger.debug("Moving Colors update triggered at %s.", now)
-
         if not self.is_enabled():
             self.logger.debug("Moving Colors is disabled, skipping update.")
             return
 
+        self.logger.debug("Moving Colors update triggered at %s.", now)
+
         # Get current configuration values (refresh if from entity)
-        min_value = int(
-            self._get_value_from_config_or_entity(MCInternal.MIN_VALUE_MANUAL.value, MCConfig.MIN_VALUE_ENTITY.value, MCIntDefaults.MIN.value)
+        min_value_manual = self.get_internal_entity_id(MCInternal.MIN_VALUE_MANUAL)
+        min_value_value = (
+            self._get_internal_entity_state_value(min_value_manual, MCIntDefaults.MIN.value, float) if min_value_manual else MCIntDefaults.MIN.value
         )
-        max_value = int(
-            self._get_value_from_config_or_entity(MCInternal.MAX_VALUE_MANUAL.value, MCConfig.MAX_VALUE_ENTITY.value, MCIntDefaults.MAX.value)
+        min_value = self._get_entity_state_value(MCConfig.MIN_VALUE_ENTITY.value, min_value_value, float)
+
+        max_value_manual = self.get_internal_entity_id(MCInternal.MAX_VALUE_MANUAL)
+        max_value_value = (
+            self._get_internal_entity_state_value(max_value_manual, MCIntDefaults.MAX.value, float) if max_value_manual else MCIntDefaults.MAX.value
         )
-        stepping = int(
-            self._get_value_from_config_or_entity(MCInternal.STEPPING_MANUAL.value, MCConfig.STEPPING_ENTITY.value, MCIntDefaults.STEPPING.value)
+        max_value = self._get_entity_state_value(MCConfig.MAX_VALUE_ENTITY.value, max_value_value, float)
+
+        stepping_manual = self.get_internal_entity_id(MCInternal.STEPPING_MANUAL)
+        stepping_value = (
+            self._get_internal_entity_state_value(stepping_manual, MCIntDefaults.STEPPING.value, float) if stepping_manual else MCIntDefaults.STEPPING.value
         )
-        use_random = self._get_value_from_config_or_entity(MCInternal.RANDOM_LIMITS_MANUAL.value, MCConfig.RANDOM_LIMITS_ENTITY.value, True)
+        stepping = self._get_entity_state_value(MCConfig.STEPPING_ENTITY.value, stepping_value, float)
+
+        use_random_manual = self.get_internal_entity_id(MCInternal.RANDOM_LIMITS_MANUAL)
+        use_random_value = (
+            self._get_internal_entity_state_value(use_random_manual, False, bool) if use_random_manual else False
+        )
+        use_random = self._get_entity_state_value(MCConfig.RANDOM_LIMITS_ENTITY.value, use_random_value, bool)
 
         # For each channel, cycle independently
         new_values = self._current_values.copy()
