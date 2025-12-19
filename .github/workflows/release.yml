@@ -8,7 +8,7 @@ on:
 permissions: {}
 
 env:
-  INTEGRATION_NAME: shadow-control
+  INTEGRATION_NAME: moving-colors
 
 jobs:
   release:

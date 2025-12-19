@@ -91,7 +91,7 @@ async def async_setup_entry(
 
     if entities_to_add:
         async_add_entities(entities_to_add, True)
-        instance_logger.info("[%s] Successfully added %s Shadow Control sensor entities for '%s'.", DOMAIN, len(entities_to_add), manager.name)
+        instance_logger.info("[%s] Successfully added %s Moving Colors sensor entities for '%s'.", DOMAIN, len(entities_to_add), manager.name)
     else:
         instance_logger.warning("[%s] No sensor entities created for manager '%s'.", DOMAIN, manager.name)
 
@@ -125,7 +125,7 @@ class MovingColorsSensor(SensorEntity):
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._entry_id)},
             name=manager.name,
-            model="Shadow Control",
+            model="Moving Colors",
             manufacturer="Yves Schumann",
         )
 

@@ -237,7 +237,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if manager:
             await manager.async_stop()
 
-        _LOGGER.info("[%s] Shadow Control integration for entry %s successfully unloaded.", DOMAIN, entry.entry_id)
+        _LOGGER.info("[%s] Moving Colors integration for entry %s successfully unloaded.", DOMAIN, entry.entry_id)
     else:
         _LOGGER.error("[%s] Failed to unload platforms for entry %s.", DOMAIN, entry.entry_id)
 
@@ -634,10 +634,9 @@ class MovingColorsManager:
         """Get the internal entity_id for this instance."""
         registry = entity_registry.async_get(self.hass)
         unique_id = f"{self._entry_id}_{internal_enum.value.lower()}"
-        entity_id = registry.async_get_entity_id(internal_enum.domain, "shadow_control", unique_id)
+        entity_id = registry.async_get_entity_id(internal_enum.domain, "moving_colors", unique_id)
         self.logger.debug("Looking up internal entity_id for unique_id: %s -> %s", unique_id, entity_id)
         return entity_id
-
 
 # Helper for dynamic log output
 def _format_config_object_for_logging(obj, prefix: str = "") -> str:
