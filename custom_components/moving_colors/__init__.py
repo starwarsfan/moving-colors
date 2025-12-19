@@ -558,7 +558,7 @@ class MovingColorsManager:
         if hasattr(self, "_update_listener") and self._update_listener:
             # Already running
             return
-        interval = timedelta(seconds=self._trigger_interval)
+        interval = timedelta(seconds=self._stepping)
         self.logger.debug("Starting periodic update task with interval %s.", interval)
         self._update_listener = async_track_time_interval(self.hass, self.async_update_state, interval)
         self._unsub_callbacks.append(self._update_listener)
