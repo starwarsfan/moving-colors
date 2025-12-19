@@ -54,6 +54,42 @@ async def async_setup_entry(
                 name="Enabled",  # default (English) fallback if no translation found
             ),
         ),
+        MovingColorsSwitch(
+            hass,
+            config_entry,
+            key=MCInternal.RANDOM_LIMITS_MANUAL.value,
+            instance_name=sanitized_instance_name,
+            logger=instance_logger,
+            icon="mdi:toggle-switch",
+            description=SwitchEntityDescription(
+                key=MCInternal.RANDOM_LIMITS_MANUAL.value,
+                name="Use random limits",  # default (English) fallback if no translation found
+            ),
+        ),
+        MovingColorsSwitch(
+            hass,
+            config_entry,
+            key=MCInternal.DEFAULT_MODE_ENABLED_MANUAL.value,
+            instance_name=sanitized_instance_name,
+            logger=instance_logger,
+            icon="mdi:toggle-switch",
+            description=SwitchEntityDescription(
+                key=MCInternal.DEFAULT_MODE_ENABLED_MANUAL.value,
+                name="Enable default mode",  # default (English) fallback if no translation found
+            ),
+        ),
+        MovingColorsSwitch(
+            hass,
+            config_entry,
+            key=MCInternal.START_FROM_CURRENT_POSITION_MANUAL.value,
+            instance_name=sanitized_instance_name,
+            logger=instance_logger,
+            icon="mdi:toggle-switch",
+            description=SwitchEntityDescription(
+                key=MCInternal.START_FROM_CURRENT_POSITION_MANUAL.value,
+                name="Start from current color",  # default (English) fallback if no translation found
+            ),
+        ),
     ]
 
     entities_to_add = []
