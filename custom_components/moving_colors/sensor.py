@@ -150,9 +150,9 @@ class MovingColorsSensor(SensorEntity):
         if self._sensor_entry_type == SensorEntries.CURRENT_VALUE:
             value = self._manager.get_current_value()
         if self._sensor_entry_type == SensorEntries.CURRENT_MIN_VALUE:
-            value = self._manager.get_current_min_value()
+            value = self._manager.get_config_min_value()
         if self._sensor_entry_type == SensorEntries.CURRENT_MAX_VALUE:
-            value = self._manager.get_current_max_value()
+            value = self._manager.get_config_max_value()
 
         if value is None:
             return None
