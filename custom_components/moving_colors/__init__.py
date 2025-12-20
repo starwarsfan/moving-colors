@@ -671,8 +671,8 @@ class MovingColorsManager:
         registry = entity_registry.async_get(self.hass)
         unique_id = f"{self._entry_id}_{internal_enum.value.lower()}"
         entity_id = registry.async_get_entity_id(internal_enum.domain, "moving_colors", unique_id)
-        #self.logger.debug("Looking up internal entity_id for unique_id: %s -> %s", unique_id, entity_id)
-        return entity_id
+        # self.logger.debug("Looking up internal entity_id for unique_id: %s -> %s", unique_id, entity_id)
+        return entity_id  # noqa: RET504
 
     def _get_internal_entity_state_value(self, entity_id: str, default: Any, expected_type: type, log_warning: bool = True) -> Any:
         """Extract dynamic value from an entity state."""
