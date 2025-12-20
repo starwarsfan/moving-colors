@@ -347,6 +347,9 @@ class MovingColorsManager:
             self.logger.info("Moving Colors '%s' is disabled. Waiting for activation.", self.name)
             return
 
+        self._current_lower_boundary = self.get_config_min_value()
+        self._current_upper_boundary = self.get_config_max_value()
+
         self.logger.debug("Starting Moving Colors instance loop.")
         await self.async_update_state()
         self.async_start_update_task()
@@ -407,7 +410,18 @@ class MovingColorsManager:
 
     def get_current_value(self) -> int:
         """Return the current calculated value."""
-        return self._current_value if self._current_value is not None else 0
+        if self._color_mode == "rgbw":
+            rgbw = [self._current_values[c] for c in "rgbw"]
+            self.logger.warning("Current value requested for rgbw mode: %s. Returning 0 as placeholder.", rgbw)
+            current_value = rgbw[0]
+        elif self._color_mode == "rgb":
+            rgb = [self._current_values[c] for c in "rgb"]
+            self.logger.warning("Current value requested for rgb mode: %s. Returning 0 as placeholder.", rgb)
+            current_value = rgb[0]
+        else:
+            current_value = self._current_values["brightness"]
+
+        return current_value
 
     def set_current_value_update_callback(self, callback_func: Callable[[int], None]) -> None:
         """Set the callback function for current value updates."""
@@ -421,6 +435,10 @@ class MovingColorsManager:
         if hasattr(self, "_update_listener") and self._update_listener:
             # Already running
             return
+
+        self._current_lower_boundary = self.get_config_min_value()
+        self._current_upper_boundary = self.get_config_max_value()
+
         interval = timedelta(seconds=self.get_config_stepping())
         self.logger.debug("Starting periodic update task with interval %s.", interval)
         self._update_listener = async_track_time_interval(self.hass, self.async_update_state, interval)
@@ -560,6 +578,16 @@ class MovingColorsManager:
             await self.async_update_state()
         else:
             self.stop_update_task()
+
+    ### =========================================================
+    ### Helpers for sensors
+    def get_current_lower_boundary(self) -> int | None:
+        """Return the current lower boundary."""
+        return self._current_lower_boundary
+
+    def get_current_upper_boundary(self) -> int | None:
+        """Return the current upper boundary."""
+        return self._current_upper_boundary
 
     ### =========================================================
     ### Getters for all configuration values
