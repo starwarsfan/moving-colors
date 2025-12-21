@@ -1,6 +1,8 @@
 """Moving Colors ConfigFlow and OptionsFlow implementation."""
 
 import logging
+from typing import Any as TypingAny
+from typing import cast
 
 import voluptuous as vol
 from homeassistant import config_entries
@@ -119,6 +121,9 @@ class MovingColorsConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         except vol.Invalid:
             _LOGGER.exception("Validation error during YAML import for '%s'", instance_name)
             return self.async_abort(reason="invalid_yaml_config")
+
+        # Store SCInternal values in config entry data or options
+        config_data_for_entry["mc_internal_values"] = cast(TypingAny, mc_internal_values)
 
         # Create ConfigEntry with 'title' as the name within the UI
         return self.async_create_entry(
