@@ -23,6 +23,7 @@ from .const import (
     DEBUG_ENABLED,
     DOMAIN,
     DOMAIN_DATA_MANAGERS,
+    INTERNAL_TO_DEFAULTS_MAP,
     MC_CONF_NAME,
     TARGET_LIGHT_ENTITY_ID,
     VERSION,
@@ -77,7 +78,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
 
 # Entry point for setup using ConfigEntry (via ConfigFlow)
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:  # noqa: C901
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Moving Colors from a config entry."""
     _LOGGER.debug("[%s] Setting up Moving Colors from config entry: %s: data=%s, options=%s", DOMAIN, entry.entry_id, entry.data, entry.options)
 
@@ -204,23 +205,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:  #
 
             # If the entity exists but has no value, push the default from const.py
             if state is None or state.state in ["unavailable", "unknown"]:
-                default_val = None
-
-                # Map the Internal Enum to the IntDefault Enum
-                if internal_member == MCInternal.START_VALUE_MANUAL:
-                    default_val = MCInternalDefaults.START_VALUE.value
-                elif internal_member == MCInternal.MIN_VALUE_MANUAL:
-                    default_val = MCInternalDefaults.MIN_VALUE.value
-                elif internal_member == MCInternal.MAX_VALUE_MANUAL:
-                    default_val = MCInternalDefaults.MAX_VALUE.value
-                elif internal_member == MCInternal.STEPPING_MANUAL:
-                    default_val = MCInternalDefaults.STEPPING.value
-                elif internal_member == MCInternal.TRIGGER_INTERVAL_MANUAL:
-                    default_val = MCInternalDefaults.TRIGGER_INTERVAL.value
-                elif internal_member == MCInternal.DEFAULT_VALUE_MANUAL:
-                    default_val = MCInternalDefaults.DEFAULT_VALUE.value
-                elif internal_member == MCInternal.STEPS_TO_DEFAULT_MANUAL:
-                    default_val = MCInternalDefaults.STEPS_TO_DEFAULT.value
+                default_val = INTERNAL_TO_DEFAULTS_MAP.get(internal_member)
 
                 if default_val is not None:
                     domain = internal_member.domain
