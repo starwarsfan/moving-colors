@@ -91,12 +91,12 @@ class SensorEntries(Enum):
     CURRENT_MIN_VALUE = "current_min_value"
     CURRENT_MAX_VALUE = "current_max_value"
 
+
 INTERNAL_TO_DEFAULTS_MAP = {
     MCInternal.ENABLED_MANUAL: False,
     MCInternal.RANDOM_LIMITS_MANUAL: False,
     MCInternal.DEFAULT_MODE_ENABLED_MANUAL: False,
     MCInternal.START_FROM_CURRENT_POSITION_MANUAL: True,
-
     MCInternal.START_VALUE_MANUAL: MCIntDefaults.START_VALUE.value,
     MCInternal.MIN_VALUE_MANUAL: MCIntDefaults.MIN_VALUE.value,
     MCInternal.MAX_VALUE_MANUAL: MCIntDefaults.MAX_VALUE.value,
