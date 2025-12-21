@@ -75,13 +75,13 @@ class MCConfig(Enum):
 class MCIntDefaults(Enum):
     """Enum for the Moving Colors default values."""
 
-    START = 125
-    MIN = 0
-    MAX = 255
+    START_VALUE = 125
+    MIN_VALUE = 0
+    MAX_VALUE = 255
     STEPPING = 3
     TRIGGER_INTERVAL = 2  # in seconds
-    DEFAULT_END = 125  # noqa: PIE796
-    STEPS_TO_DEFAULT_END = 5
+    DEFAULT_VALUE = 125  # noqa: PIE796
+    STEPS_TO_DEFAULT = 5
 
 
 class SensorEntries(Enum):

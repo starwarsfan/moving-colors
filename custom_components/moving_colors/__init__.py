@@ -208,19 +208,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:  #
 
                 # Map the Internal Enum to the IntDefault Enum
                 if internal_member == MCInternal.START_VALUE_MANUAL:
-                    default_val = MCIntDefaults.START.value
+                    default_val = MCIntDefaults.START_VALUE.value
                 elif internal_member == MCInternal.MIN_VALUE_MANUAL:
-                    default_val = MCIntDefaults.MIN.value
+                    default_val = MCIntDefaults.MIN_VALUE.value
                 elif internal_member == MCInternal.MAX_VALUE_MANUAL:
-                    default_val = MCIntDefaults.MAX.value
+                    default_val = MCIntDefaults.MAX_VALUE.value
                 elif internal_member == MCInternal.STEPPING_MANUAL:
                     default_val = MCIntDefaults.STEPPING.value
                 elif internal_member == MCInternal.TRIGGER_INTERVAL_MANUAL:
                     default_val = MCIntDefaults.TRIGGER_INTERVAL.value
                 elif internal_member == MCInternal.DEFAULT_VALUE_MANUAL:
-                    default_val = MCIntDefaults.DEFAULT_END.value
+                    default_val = MCIntDefaults.DEFAULT_VALUE.value
                 elif internal_member == MCInternal.STEPS_TO_DEFAULT_MANUAL:
-                    default_val = MCIntDefaults.STEPS_TO_DEFAULT_END.value
+                    default_val = MCIntDefaults.STEPS_TO_DEFAULT.value
 
                 if default_val is not None:
                     domain = internal_member.domain
@@ -644,15 +644,15 @@ class MovingColorsManager:
     ### Integer getters
     def get_config_start_value(self) -> int:
         """Return the current start value."""
-        return self._get_composed_config_value(MCConfig.START_VALUE_ENTITY, MCInternal.START_VALUE_MANUAL, MCIntDefaults.START.value, int)
+        return self._get_composed_config_value(MCConfig.START_VALUE_ENTITY, MCInternal.START_VALUE_MANUAL, MCIntDefaults.START_VALUE.value, int)
 
     def get_config_min_value(self) -> int:
         """Return the current min value."""
-        return self._get_composed_config_value(MCConfig.MIN_VALUE_ENTITY, MCInternal.MIN_VALUE_MANUAL, MCIntDefaults.MIN.value, int)
+        return self._get_composed_config_value(MCConfig.MIN_VALUE_ENTITY, MCInternal.MIN_VALUE_MANUAL, MCIntDefaults.MIN_VALUE.value, int)
 
     def get_config_max_value(self) -> int:
         """Return the current max value."""
-        return self._get_composed_config_value(MCConfig.MAX_VALUE_ENTITY, MCInternal.MAX_VALUE_MANUAL, MCIntDefaults.MAX.value, int)
+        return self._get_composed_config_value(MCConfig.MAX_VALUE_ENTITY, MCInternal.MAX_VALUE_MANUAL, MCIntDefaults.MAX_VALUE.value, int)
 
     def get_config_stepping(self) -> int:
         """Return the current stepping value."""
@@ -666,12 +666,12 @@ class MovingColorsManager:
 
     def get_config_default_value(self) -> int:
         """Return the current stepping value."""
-        return self._get_composed_config_value(MCConfig.DEFAULT_VALUE_ENTITY, MCInternal.DEFAULT_VALUE_MANUAL, MCIntDefaults.DEFAULT_END.value, int)
+        return self._get_composed_config_value(MCConfig.DEFAULT_VALUE_ENTITY, MCInternal.DEFAULT_VALUE_MANUAL, MCIntDefaults.DEFAULT_VALUE.value, int)
 
     def get_config_steps_to_default(self) -> int:
         """Return the current stepping value."""
         return self._get_composed_config_value(
-            MCConfig.STEPS_TO_DEFAULT_ENTITY, MCInternal.STEPS_TO_DEFAULT_MANUAL, MCIntDefaults.STEPS_TO_DEFAULT_END.value, int
+            MCConfig.STEPS_TO_DEFAULT_ENTITY, MCInternal.STEPS_TO_DEFAULT_MANUAL, MCIntDefaults.STEPS_TO_DEFAULT.value, int
         )
 
     ### =========================================================
