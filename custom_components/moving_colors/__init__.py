@@ -27,8 +27,8 @@ from .const import (
     TARGET_LIGHT_ENTITY_ID,
     VERSION,
     MCConfig,
-    MCIntDefaults,
     MCInternal,
+    MCInternalDefaults,
 )
 
 _GLOBAL_DOMAIN_LOGGER = logging.getLogger(DOMAIN)
@@ -208,19 +208,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:  #
 
                 # Map the Internal Enum to the IntDefault Enum
                 if internal_member == MCInternal.START_VALUE_MANUAL:
-                    default_val = MCIntDefaults.START_VALUE.value
+                    default_val = MCInternalDefaults.START_VALUE.value
                 elif internal_member == MCInternal.MIN_VALUE_MANUAL:
-                    default_val = MCIntDefaults.MIN_VALUE.value
+                    default_val = MCInternalDefaults.MIN_VALUE.value
                 elif internal_member == MCInternal.MAX_VALUE_MANUAL:
-                    default_val = MCIntDefaults.MAX_VALUE.value
+                    default_val = MCInternalDefaults.MAX_VALUE.value
                 elif internal_member == MCInternal.STEPPING_MANUAL:
-                    default_val = MCIntDefaults.STEPPING.value
+                    default_val = MCInternalDefaults.STEPPING.value
                 elif internal_member == MCInternal.TRIGGER_INTERVAL_MANUAL:
-                    default_val = MCIntDefaults.TRIGGER_INTERVAL.value
+                    default_val = MCInternalDefaults.TRIGGER_INTERVAL.value
                 elif internal_member == MCInternal.DEFAULT_VALUE_MANUAL:
-                    default_val = MCIntDefaults.DEFAULT_VALUE.value
+                    default_val = MCInternalDefaults.DEFAULT_VALUE.value
                 elif internal_member == MCInternal.STEPS_TO_DEFAULT_MANUAL:
-                    default_val = MCIntDefaults.STEPS_TO_DEFAULT.value
+                    default_val = MCInternalDefaults.STEPS_TO_DEFAULT.value
 
                 if default_val is not None:
                     domain = internal_member.domain
@@ -644,34 +644,36 @@ class MovingColorsManager:
     ### Integer getters
     def get_config_start_value(self) -> int:
         """Return the current start value."""
-        return self._get_composed_config_value(MCConfig.START_VALUE_ENTITY, MCInternal.START_VALUE_MANUAL, MCIntDefaults.START_VALUE.value, int)
+        return self._get_composed_config_value(MCConfig.START_VALUE_ENTITY, MCInternal.START_VALUE_MANUAL, MCInternalDefaults.START_VALUE.value, int)
 
     def get_config_min_value(self) -> int:
         """Return the current min value."""
-        return self._get_composed_config_value(MCConfig.MIN_VALUE_ENTITY, MCInternal.MIN_VALUE_MANUAL, MCIntDefaults.MIN_VALUE.value, int)
+        return self._get_composed_config_value(MCConfig.MIN_VALUE_ENTITY, MCInternal.MIN_VALUE_MANUAL, MCInternalDefaults.MIN_VALUE.value, int)
 
     def get_config_max_value(self) -> int:
         """Return the current max value."""
-        return self._get_composed_config_value(MCConfig.MAX_VALUE_ENTITY, MCInternal.MAX_VALUE_MANUAL, MCIntDefaults.MAX_VALUE.value, int)
+        return self._get_composed_config_value(MCConfig.MAX_VALUE_ENTITY, MCInternal.MAX_VALUE_MANUAL, MCInternalDefaults.MAX_VALUE.value, int)
 
     def get_config_stepping(self) -> int:
         """Return the current stepping value."""
-        return self._get_composed_config_value(MCConfig.STEPPING_ENTITY, MCInternal.STEPPING_MANUAL, MCIntDefaults.STEPPING.value, int)
+        return self._get_composed_config_value(MCConfig.STEPPING_ENTITY, MCInternal.STEPPING_MANUAL, MCInternalDefaults.STEPPING.value, int)
 
     def get_config_trigger_interval(self) -> int:
         """Return the current trigger interval."""
         return self._get_composed_config_value(
-            MCConfig.TRIGGER_INTERVAL_ENTITY, MCInternal.TRIGGER_INTERVAL_MANUAL, MCIntDefaults.TRIGGER_INTERVAL.value, int
+            MCConfig.TRIGGER_INTERVAL_ENTITY, MCInternal.TRIGGER_INTERVAL_MANUAL, MCInternalDefaults.TRIGGER_INTERVAL.value, int
         )
 
     def get_config_default_value(self) -> int:
         """Return the current stepping value."""
-        return self._get_composed_config_value(MCConfig.DEFAULT_VALUE_ENTITY, MCInternal.DEFAULT_VALUE_MANUAL, MCIntDefaults.DEFAULT_VALUE.value, int)
+        return self._get_composed_config_value(
+            MCConfig.DEFAULT_VALUE_ENTITY, MCInternal.DEFAULT_VALUE_MANUAL, MCInternalDefaults.DEFAULT_VALUE.value, int
+        )
 
     def get_config_steps_to_default(self) -> int:
         """Return the current stepping value."""
         return self._get_composed_config_value(
-            MCConfig.STEPS_TO_DEFAULT_ENTITY, MCInternal.STEPS_TO_DEFAULT_MANUAL, MCIntDefaults.STEPS_TO_DEFAULT.value, int
+            MCConfig.STEPS_TO_DEFAULT_ENTITY, MCInternal.STEPS_TO_DEFAULT_MANUAL, MCInternalDefaults.STEPS_TO_DEFAULT.value, int
         )
 
     ### =========================================================

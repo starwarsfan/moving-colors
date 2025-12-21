@@ -72,7 +72,7 @@ class MCConfig(Enum):
     STEPS_TO_DEFAULT_ENTITY = "steps_to_default_entity"
 
 
-class MCIntDefaults(Enum):
+class MCInternalDefaults(Enum):
     """Enum for the Moving Colors default values."""
 
     START_VALUE = 125
@@ -97,13 +97,13 @@ INTERNAL_TO_DEFAULTS_MAP = {
     MCInternal.RANDOM_LIMITS_MANUAL: False,
     MCInternal.DEFAULT_MODE_ENABLED_MANUAL: False,
     MCInternal.START_FROM_CURRENT_POSITION_MANUAL: True,
-    MCInternal.START_VALUE_MANUAL: MCIntDefaults.START_VALUE.value,
-    MCInternal.MIN_VALUE_MANUAL: MCIntDefaults.MIN_VALUE.value,
-    MCInternal.MAX_VALUE_MANUAL: MCIntDefaults.MAX_VALUE.value,
-    MCInternal.STEPPING_MANUAL: MCIntDefaults.STEPPING.value,
-    MCInternal.TRIGGER_INTERVAL_MANUAL: MCIntDefaults.TRIGGER_INTERVAL.value,
-    MCInternal.DEFAULT_VALUE_MANUAL: MCIntDefaults.DEFAULT_VALUE.value,
-    MCInternal.STEPS_TO_DEFAULT_MANUAL: MCIntDefaults.STEPS_TO_DEFAULT.value,
+    MCInternal.START_VALUE_MANUAL: MCInternalDefaults.START_VALUE.value,
+    MCInternal.MIN_VALUE_MANUAL: MCInternalDefaults.MIN_VALUE.value,
+    MCInternal.MAX_VALUE_MANUAL: MCInternalDefaults.MAX_VALUE.value,
+    MCInternal.STEPPING_MANUAL: MCInternalDefaults.STEPPING.value,
+    MCInternal.TRIGGER_INTERVAL_MANUAL: MCInternalDefaults.TRIGGER_INTERVAL.value,
+    MCInternal.DEFAULT_VALUE_MANUAL: MCInternalDefaults.DEFAULT_VALUE.value,
+    MCInternal.STEPS_TO_DEFAULT_MANUAL: MCInternalDefaults.STEPS_TO_DEFAULT.value,
 }
 
 NUMBER_INTERNAL_TO_EXTERNAL_MAP = {
