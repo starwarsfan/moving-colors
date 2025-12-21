@@ -133,37 +133,37 @@
       "sensor_current_max_value": {
         "name": "Aktueller Maximalwert"
       },
-      "sensor_enabled_entity": {
+      "enabled_entity": {
         "name": "Aktiviert"
       },
-      "sensor_start_value_entity": {
+      "start_value_entity": {
         "name": "Startwert"
       },
-      "sensor_min_value_entity": {
+      "min_value_entity": {
         "name": "Minimalwert"
       },
-      "sensor_max_value_entity": {
+      "max_value_entity": {
         "name": "Maximalwert"
       },
-      "sensor_stepping_entity": {
+      "stepping_entity": {
         "name": "Schrittweite"
       },
-      "sensor_trigger_interval_entity": {
+      "trigger_interval_entity": {
         "name": "Interval"
       },
-      "sensor_random_limits_entity": {
+      "random_limits_entity": {
         "name": "Zufällige Grenzen"
       },
-      "sensor_default_value_entity": {
+      "default_value_entity": {
         "name": "Standardwert"
       },
-      "sensor_default_mode_enabled_entity": {
+      "default_mode_enabled_entity": {
         "name": "Standardmodus aktiviert"
       },
-      "sensor_start_from_current_position_entity": {
+      "start_from_current_position_entity": {
         "name": "Startwert von aktueller Position"
       },
-      "sensor_steps_to_default_entity": {
+      "steps_to_default_entity": {
         "name": "Schritte bis Standardwert"
       }
     },
