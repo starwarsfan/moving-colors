@@ -43,8 +43,8 @@
     },
     "error": {
       "unknown": "Unknown error occurred.",
-      "name": "Name required.",
-      "target_light_entity": "Entity required."
+      "name_missing": "Name required.",
+      "target_light_entity_missing": "Light entity required."
     },
     "abort": {
       "already_configured": "This entry is already configured."
@@ -92,8 +92,8 @@
     },
     "error": {
       "unknown": "Unknown error occurred.",
-      "name": "Name required.",
-      "target_light_entity": "Entity required."
+      "name_missing": "Name required.",
+      "target_light_entity_missing": "Light entity required."
     },
     "abort": {
       "already_configured": "This entry is already configured."

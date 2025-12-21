@@ -141,10 +141,10 @@ class MovingColorsConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             # Manual validation of input fields to provide possible error messages
             # for each field at once and not step by step.
             if not user_input.get(MC_CONF_NAME):
-                errors[MC_CONF_NAME] = "name"  # Error code from within strings.json
+                errors[MC_CONF_NAME] = "name_missing"  # Error code from within strings.json
 
             if not user_input.get(TARGET_LIGHT_ENTITY_ID):
-                errors[TARGET_LIGHT_ENTITY_ID] = "target_light_entity"  # Error code from within strings.json
+                errors[TARGET_LIGHT_ENTITY_ID] = "target_light_entity_missing"  # Error code from within strings.json
 
             # If configuration errors found, show the config form again
             if errors:

@@ -43,8 +43,8 @@
     },
     "error": {
       "unknown": "Unknown error occurred.",
-      "name": "Name wird zwingend benötigt.",
-      "target_light_entity": "Zu steuernde Entität muss ausgewählt werden."
+      "name_missing": "Name wird zwingend benötigt.",
+      "target_light_entity_missing": "Zu steuernde Licht-Entität muss ausgewählt werden."
     },
     "abort": {
       "already_configured": "This entry is already configured."
@@ -92,8 +92,8 @@
     },
     "error": {
       "unknown": "Unknown error occurred.",
-      "name": "Name wird zwingend benötigt.",
-      "target_light_entity": "Zu steuernde Entität muss ausgewählt werden."
+      "name_missing": "Name wird zwingend benötigt.",
+      "target_light_entity_missing": "Zu steuernde Licht-Entität muss ausgewählt werden."
     },
     "abort": {
       "already_configured": "Dieser Eintrag ist bereits konfiguriert."
