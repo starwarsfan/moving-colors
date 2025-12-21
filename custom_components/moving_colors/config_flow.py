@@ -21,6 +21,16 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
+# Wrapper for minimal configuration, which will be stored within `data`
+# CFG_MINIMAL_REQUIRED = vol.Schema(
+def get_cfg_minimal_required() -> vol.Schema:
+    """Get minimal required configuration schema."""
+    return vol.Schema(
+        {
+            vol.Optional(MC_CONF_NAME, default=""): selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)),
+            vol.Optional(TARGET_LIGHT_ENTITY_ID): selector.EntitySelector(selector.EntitySelectorConfig(domain="light", multiple=True)),
+        }
+    )
 
 # Wrapper for config options, which will be used and validated within ConfigFlow and OptionFlow
 def get_cfg_options() -> vol.Schema:
@@ -55,6 +65,9 @@ def get_cfg_options() -> vol.Schema:
             vol.Optional(DEBUG_ENABLED, default=False): selector.BooleanSelector(),
         }
     )
+
+# Wrapper for minimal configuration, which is used to show initial ConfigFlow
+CFG_MINIMAL = vol.Schema(get_cfg_minimal_required().schema | get_cfg_options().schema)
 
 
 class MovingColorsConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
@@ -91,10 +104,10 @@ class MovingColorsConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         options_data_for_entry = import_config
 
         # Extract SCInternal values before validation
-        sc_internal_values = {key: options_data_for_entry[key] for key in list(options_data_for_entry) if key in [e.value for e in MCInternal]}
+        mc_internal_values = {key: options_data_for_entry[key] for key in list(options_data_for_entry) if key in [e.value for e in MCInternal]}
 
         # Remove them from options_data_for_entry so validation doesn't fail
-        for key in sc_internal_values:
+        for key in mc_internal_values:
             options_data_for_entry.pop(key)
 
         # Optional validation against FULL_OPTIONS_SCHEMA to verify the yaml data
@@ -134,7 +147,7 @@ class MovingColorsConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             if errors:
                 return self.async_show_form(
                     step_id="user",
-                    data_schema=self.add_suggested_values_to_schema(get_cfg_options(), form_data),
+                    data_schema=self.add_suggested_values_to_schema(CFG_MINIMAL, form_data),
                     errors=errors,
                 )
 
@@ -144,7 +157,7 @@ class MovingColorsConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             for entry in self.hass.config_entries.async_entries(DOMAIN):
                 if entry.data.get(MC_CONF_NAME) == instance_name:
                     errors = {"base": "already_configured"}
-                    return self.async_show_form(step_id="user", data_schema=get_cfg_options(), errors=errors)
+                    return self.async_show_form(step_id="user", data_schema=CFG_MINIMAL, errors=errors)
 
             # Immutable configuration data, not available within OptionsFlow
             config_data_for_entry = {
@@ -160,7 +173,7 @@ class MovingColorsConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
             # All fine, now perform voluptuous validation
             try:
-                validated_options_initial = get_cfg_options(options_data_for_entry)
+                validated_options_initial = get_cfg_options()(options_data_for_entry)
                 _LOGGER.debug("Creating entry with data: %s and options: %s", config_data_for_entry, validated_options_initial)
                 return self.async_create_entry(
                     title=instance_name,
@@ -177,7 +190,7 @@ class MovingColorsConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="user",
-            data_schema=self.add_suggested_values_to_schema(get_cfg_options(), self.config_data),
+            data_schema=self.add_suggested_values_to_schema(CFG_MINIMAL, self.config_data),
             errors=errors,
         )
 
