@@ -243,12 +243,12 @@ class MovingColorsOptionsFlowHandler(config_entries.OptionsFlow):
         validation_schema = get_cfg_options()
         errors: dict[str, str] = {}
         if user_input is not None:
-            _LOGGER.debug("[OptionsFlow facade settings] Received user_input: %s", user_input)
+            _LOGGER.debug("[OptionsFlow] Received user_input: %s", user_input)
 
             # Manual validation of input fields to provide possible error messages
             # for each field at once and not step by step.
-            # if not user_input.get(TARGET_COVER_ENTITY_ID):
-            #    errors[TARGET_COVER_ENTITY_ID] = "target_cover_entity"  # Error code from within strings.json
+            if not user_input.get(TARGET_LIGHT_ENTITY_ID):
+                errors[TARGET_LIGHT_ENTITY_ID] = "target_light_entity_missing"  # Error code from within strings.json
 
             # If configuration errors found, show the config form again
             if errors:
@@ -266,7 +266,7 @@ class MovingColorsOptionsFlowHandler(config_entries.OptionsFlow):
             try:
                 # Validate the entire options configuration using the combined schema
                 validated_options = validation_schema(self.options_data)
-                _LOGGER.debug("[OptionsFlow dawn settings] Validated options data: %s", validated_options)
+                _LOGGER.debug("[OptionsFlow] Validated options data: %s", validated_options)
 
                 self.hass.config_entries.async_update_entry(self.config_entry, data=self.config_entry.data, options=validated_options)
 
