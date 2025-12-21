@@ -32,6 +32,7 @@ ignore = [
     "ANN001", # Missing type annotation for function argument
     "PLR0913", # Too many arguments in function definition
     "S311", # Standard pseudo-random generators are not suitable for cryptographic purposes
+    "TC006", # Add quotes to type expression in `typing.cast()`
 ]
 
 [lint.flake8-pytest-style]
