@@ -77,7 +77,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
 
 # Entry point for setup using ConfigEntry (via ConfigFlow)
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:  # noqa: C901
     """Set up Moving Colors from a config entry."""
     _LOGGER.debug("[%s] Setting up Moving Colors from config entry: %s: data=%s, options=%s", DOMAIN, entry.entry_id, entry.data, entry.options)
 
@@ -196,6 +196,39 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     _LOGGER.warning("Unsupported domain %s for internal entity %s", domain, entity_id)
             else:
                 _LOGGER.warning("Could not find entity ID for internal entity %s", internal_enum_name)
+
+        # 2. NEW: Initialize empty internal entities with MCIntDefaults
+        for internal_member in MCInternal:
+            entity_id = manager.get_internal_entity_id(internal_member)
+            state = hass.states.get(entity_id)
+
+            # If the entity exists but has no value, push the default from const.py
+            if state is None or state.state in ["unavailable", "unknown"]:
+                default_val = None
+
+                # Map the Internal Enum to the IntDefault Enum
+                if internal_member == MCInternal.START_VALUE_MANUAL:
+                    default_val = MCIntDefaults.START.value
+                elif internal_member == MCInternal.MIN_VALUE_MANUAL:
+                    default_val = MCIntDefaults.MIN.value
+                elif internal_member == MCInternal.MAX_VALUE_MANUAL:
+                    default_val = MCIntDefaults.MAX.value
+                elif internal_member == MCInternal.STEPPING_MANUAL:
+                    default_val = MCIntDefaults.STEPPING.value
+                elif internal_member == MCInternal.TRIGGER_INTERVAL_MANUAL:
+                    default_val = MCIntDefaults.TRIGGER_INTERVAL.value
+                elif internal_member == MCInternal.DEFAULT_VALUE_MANUAL:
+                    default_val = MCIntDefaults.DEFAULT_END.value
+                elif internal_member == MCInternal.STEPS_TO_DEFAULT_MANUAL:
+                    default_val = MCIntDefaults.STEPS_TO_DEFAULT_END.value
+
+                if default_val is not None:
+                    domain = internal_member.domain
+                    if domain == "number":
+                        await hass.services.async_call("number", "set_value", {"entity_id": entity_id, "value": default_val})
+                    elif domain == "switch":
+                        service = "turn_on" if default_val else "turn_off"
+                        await hass.services.async_call("switch", service, {"entity_id": entity_id})
 
     hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STARTED, set_internal_entities_when_ready)
     # End of setting internal entities
