@@ -14,7 +14,7 @@ from homeassistant.helpers.restore_state import RestoreEntity
 if TYPE_CHECKING:
     from . import MovingColorsManager
 
-from .const import DOMAIN, DOMAIN_DATA_MANAGERS, NUMBER_INTERNAL_TO_EXTERNAL_MAP, MCInternal
+from .const import DOMAIN, DOMAIN_DATA_MANAGERS, INTERNAL_TO_DEFAULTS_MAP, NUMBER_INTERNAL_TO_EXTERNAL_MAP, MCInternal
 
 
 async def async_setup_entry(
@@ -277,7 +277,11 @@ class MovingColorsNumber(NumberEntity, RestoreEntity):
                     self.name,
                     last_state.state,
                 )
+        else:
+            # Match this entity's key to the Enum
+            member = next((m for m in MCInternal if m.value == self.entity_description.key), None)
+            if member and member in INTERNAL_TO_DEFAULTS_MAP:
+                self._value = INTERNAL_TO_DEFAULTS_MAP[member]
+                self.logger.debug("Entity %s initialized with default: %s", self.entity_id, self._value)
 
-        # --- IMPORTANT: WE WILL CLEAN UP THE REST OF THIS METHOD IN THE NEXT STEP ---
-        # ... (If your code still contains listener logic here, we'll remove it next)
         self.async_write_ha_state()
