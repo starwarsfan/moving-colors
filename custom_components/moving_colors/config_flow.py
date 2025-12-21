@@ -21,6 +21,7 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
+
 # Wrapper for minimal configuration, which will be stored within `data`
 # CFG_MINIMAL_REQUIRED = vol.Schema(
 def get_cfg_minimal_required() -> vol.Schema:
@@ -31,6 +32,7 @@ def get_cfg_minimal_required() -> vol.Schema:
             vol.Optional(TARGET_LIGHT_ENTITY_ID): selector.EntitySelector(selector.EntitySelectorConfig(domain="light", multiple=True)),
         }
     )
+
 
 # Wrapper for config options, which will be used and validated within ConfigFlow and OptionFlow
 def get_cfg_options() -> vol.Schema:
@@ -65,6 +67,7 @@ def get_cfg_options() -> vol.Schema:
             vol.Optional(DEBUG_ENABLED, default=False): selector.BooleanSelector(),
         }
     )
+
 
 # Wrapper for minimal configuration, which is used to show initial ConfigFlow
 CFG_MINIMAL = vol.Schema(get_cfg_minimal_required().schema | get_cfg_options().schema)
