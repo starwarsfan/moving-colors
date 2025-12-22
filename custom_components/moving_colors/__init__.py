@@ -478,26 +478,33 @@ class MovingColorsManager:
         self.logger.debug("State for %s: %s", entity_id, state)
         if state:
             self.logger.debug("Attributes for %s: %s", entity_id, state.attributes)
+
         supported = state.attributes.get("supported_color_modes", []) if state else []
         color_mode = state.attributes.get("color_mode") if state else None
-        # Default to brightness
+
+        # 1. Handle RGBW
         if "rgbw" in supported or color_mode == "rgbw":
             self._color_mode = "rgbw"
-            rgbw = state.attributes.get("rgbw_color", [0, 0, 0, 0]) if state else [0, 0, 0, 0]
+            # Use a default list [0, 0, 0, 0] if the attribute is None
+            rgbw = state.attributes.get("rgbw_color") if state else None
+            if not isinstance(rgbw, (list, tuple)):
+                rgbw = [0, 0, 0, 0]
             self._current_values = {"r": rgbw[0], "g": rgbw[1], "b": rgbw[2], "w": rgbw[3]}
-        elif "rgb" in supported or color_mode == "rgb":
+
+        # 2. Handle RGB
+        elif "rgb" in supported or color_mode == "rgb" or (state and "rgb_color" in state.attributes):
             self._color_mode = "rgb"
-            rgb = state.attributes.get("rgb_color", [0, 0, 0]) if state else [0, 0, 0]
+            rgb = state.attributes.get("rgb_color") if state else None
+            if not isinstance(rgb, (list, tuple)):
+                rgb = [0, 0, 0]
             self._current_values = {"r": rgb[0], "g": rgb[1], "b": rgb[2]}
-        elif state and "rgb_color" in state.attributes:
-            # Fallback: if rgb_color attribute exists, treat as rgb
-            self._color_mode = "rgb"
-            rgb = state.attributes.get("rgb_color", [0, 0, 0])
-            self._current_values = {"r": rgb[0], "g": rgb[1], "b": rgb[2]}
+
+        # 3. Fallback to Brightness
         else:
             self._color_mode = "brightness"
             brightness = state.attributes.get("brightness", 0) if state else 0
             self._current_values = {"brightness": brightness}
+
         self.logger.debug("Detected color mode: %s, initial values: %s", self._color_mode, self._current_values)
 
     async def async_update_state(self, now: dt_util.dt.datetime | None = None) -> None:
@@ -574,11 +581,38 @@ class MovingColorsManager:
         # Prepare service data based on color mode
         for target_entity in self._target_light_entity_id:
             if target_entity:
-                # Identify a primary channel to show in the logs (e.g., 'brightness' or 'r')
-                primary = "brightness" if "brightness" in self._current_values else "r"
-                curr_val = self._current_values.get(primary)
-                curr_min = self._active_min.get(primary)
-                curr_max = self._active_max.get(primary)
+                if self.is_debug_enabled():
+                    if self._color_mode in ["rgb", "rgbw"]:
+                        # 1. Determine which channels to look up
+                        channels = list(self._color_mode) # results in ['r', 'g', 'b'] or ['r', 'g', 'b', 'w']
+
+                        # 2. Build strings for current values and active ranges
+                        vals_str = "/".join([str(int(self._current_values.get(c, 0))) for c in channels])
+                        ranges_str = " | ".join([
+                            f"{c}:{self._active_min.get(c)}-{self._active_max.get(c)}"
+                            for c in channels
+                        ])
+
+                        self.logger.debug(
+                            "Update %s [%s]: Values=%s (Active Ranges: %s)",
+                            target_entity,
+                            self._color_mode.upper(),
+                            vals_str,
+                            ranges_str
+                        )
+                    else:
+                        # 3. Fallback for simple Brightness mode
+                        brightness = int(self._current_values.get("brightness", 0))
+                        b_min = self._active_min.get("brightness")
+                        b_max = self._active_max.get("brightness")
+
+                        self.logger.debug(
+                            "Update %s: Brightness=%s (Range: %s-%s)",
+                            target_entity,
+                            brightness,
+                            b_min,
+                            b_max
+                        )
 
                 if self._color_mode == "rgbw":
                     rgbw = [self._current_values[c] for c in "rgbw"]
@@ -589,7 +623,6 @@ class MovingColorsManager:
                 else:
                     brightness = self._current_values["brightness"]
                     service_data = {"entity_id": target_entity, "brightness": brightness}
-                self.logger.debug("Update %s: %s=%s (Range: %s-%s)", target_entity, primary, curr_val, curr_min, curr_max)
                 await self.hass.services.async_call("light", "turn_on", service_data)
             else:
                 self.logger.error("No target light entity ID configured for Moving Colors instance.")
@@ -603,6 +636,10 @@ class MovingColorsManager:
             await self.async_update_state()
         else:
             self.stop_update_task()
+
+    def is_debug_enabled(self) -> bool:
+        """Check if the debug switch for this instance is ON."""
+        return self.logger.getEffectiveLevel() == logging.DEBUG
 
     ### =========================================================
     ### Helpers for sensors
