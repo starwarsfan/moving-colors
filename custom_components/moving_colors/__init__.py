@@ -352,8 +352,6 @@ class MovingColorsManager:
         self._current_values: dict[str, int] = {}
 
         # Boundaries and Mode Tracking
-        self._current_lower_boundary: int | None = None
-        self._current_upper_boundary: int | None = None
         self._steps_since_last_change: int = 0
         self._is_in_default_mode: bool = False
 
@@ -374,9 +372,6 @@ class MovingColorsManager:
         if not self.is_enabled():
             self.logger.info("Moving Colors '%s' is disabled. Waiting for activation.", self.name)
             return
-
-        self._current_lower_boundary = self.get_config_min_value()
-        self._current_upper_boundary = self.get_config_max_value()
 
         self.logger.debug("Starting Moving Colors instance loop.")
         await self.async_update_state()
@@ -463,9 +458,6 @@ class MovingColorsManager:
         if hasattr(self, "_update_listener") and self._update_listener:
             # Already running
             return
-
-        self._current_lower_boundary = self.get_config_min_value()
-        self._current_upper_boundary = self.get_config_max_value()
 
         interval = timedelta(seconds=self.get_config_trigger_interval())
         self.logger.debug("Starting periodic update task with interval %s.", interval)
@@ -589,36 +581,29 @@ class MovingColorsManager:
         # Prepare service data based on color mode
         for target_entity in self._target_light_entity_id:
             if target_entity:
+                # Identify a primary channel to show in the logs (e.g., 'brightness' or 'r')
+                primary = "brightness" if "brightness" in self._current_values else "r"
+                curr_val = self._current_values.get(primary)
+                curr_min = self._active_min.get(primary)
+                curr_max = self._active_max.get(primary)
+
                 if self._color_mode == "rgbw":
                     rgbw = [self._current_values[c] for c in "rgbw"]
                     service_data = {"entity_id": target_entity, "rgbw_color": rgbw}
-                    self.logger.debug(
-                        "Set light %s to rgbw_color %s (lower boundary: %s, upper boundary: %s)",
-                        target_entity,
-                        rgbw,
-                        self._current_lower_boundary,
-                        self._current_upper_boundary,
-                    )
                 elif self._color_mode == "rgb":
                     rgb = [self._current_values[c] for c in "rgb"]
                     service_data = {"entity_id": target_entity, "rgb_color": rgb}
-                    self.logger.debug(
-                        "Set light %s to rgb_color %s (lower boundary: %s, upper boundary: %s)",
-                        target_entity,
-                        rgb,
-                        self._current_lower_boundary,
-                        self._current_upper_boundary,
-                    )
                 else:
                     brightness = self._current_values["brightness"]
                     service_data = {"entity_id": target_entity, "brightness": brightness}
-                    self.logger.debug(
-                        "Set light %s to brightness %s (lower boundary: %s, upper boundary: %s)",
-                        target_entity,
-                        brightness,
-                        self._current_lower_boundary,
-                        self._current_upper_boundary,
-                    )
+                self.logger.debug(
+                    "Update %s: %s=%s (Range: %s-%s)",
+                    target_entity,
+                    primary,
+                    curr_val,
+                    curr_min,
+                    curr_max
+                )
                 await self.hass.services.async_call("light", "turn_on", service_data)
             else:
                 self.logger.error("No target light entity ID configured for Moving Colors instance.")
@@ -637,11 +622,11 @@ class MovingColorsManager:
     ### Helpers for sensors
     def get_current_lower_boundary(self) -> int | None:
         """Return the current lower boundary."""
-        return self._current_lower_boundary
+        return -1
 
     def get_current_upper_boundary(self) -> int | None:
         """Return the current upper boundary."""
-        return self._current_upper_boundary
+        return 256
 
     ### =========================================================
     ### Getters for all configuration values
