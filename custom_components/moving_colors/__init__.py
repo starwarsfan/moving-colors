@@ -462,7 +462,7 @@ class MovingColorsManager:
         self._current_lower_boundary = self.get_config_min_value()
         self._current_upper_boundary = self.get_config_max_value()
 
-        interval = timedelta(seconds=self.get_config_stepping())
+        interval = timedelta(seconds=self.get_config_trigger_interval())
         self.logger.debug("Starting periodic update task with interval %s.", interval)
         self._update_listener = async_track_time_interval(self.hass, self.async_update_state, interval)
         self._unsub_callbacks.append(self._update_listener)
