@@ -346,6 +346,11 @@ class MovingColorsManager:
         self._current_direction: int = 1  # 1 for up, -1 for down
         self._update_listener: Callable[[], None] | None = None
 
+        # Initialize the state trackers for the logic
+        self._active_min: dict[str, int] = {}
+        self._active_max: dict[str, int] = {}
+        self._current_values: dict[str, int] = {}
+
         # Boundaries and Mode Tracking
         self._current_lower_boundary: int | None = None
         self._current_upper_boundary: int | None = None
