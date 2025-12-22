@@ -542,16 +542,10 @@ class MovingColorsManager:
                     if use_random:
                         # New min is between absolute min and current position
                         self._active_min[channel] = random.randint(abs_min, int(val))
-                        self.logger.debug(
-                            "Channel %s: Hit max (%s). New random min border: %s",
-                            channel, val, self._active_min[channel]
-                        )
+                        self.logger.debug("Channel %s: Hit max (%s). New random min border: %s", channel, val, self._active_min[channel])
                     else:
                         self._active_min[channel] = abs_min
-                        self.logger.debug(
-                            "Channel %s: Hit max (%s).",
-                            channel, val
-                        )
+                        self.logger.debug("Channel %s: Hit max (%s).", channel, val)
 
             # 3. Logic for moving DOWN
             else:
@@ -565,16 +559,10 @@ class MovingColorsManager:
                     if use_random:
                         # New max is between current position and absolute max
                         self._active_max[channel] = random.randint(int(val), abs_max)
-                        self.logger.debug(
-                            "Channel %s: Hit min (%s). New random max border: %s",
-                            channel, val, self._active_max[channel]
-                        )
+                        self.logger.debug("Channel %s: Hit min (%s). New random max border: %s", channel, val, self._active_max[channel])
                     else:
                         self._active_max[channel] = abs_max
-                        self.logger.debug(
-                            "Channel %s: Hit min (%s).",
-                            channel, val
-                        )
+                        self.logger.debug("Channel %s: Hit min (%s).", channel, val)
 
             new_values[channel] = max(0, min(255, val))
 
@@ -601,14 +589,7 @@ class MovingColorsManager:
                 else:
                     brightness = self._current_values["brightness"]
                     service_data = {"entity_id": target_entity, "brightness": brightness}
-                self.logger.debug(
-                    "Update %s: %s=%s (Range: %s-%s)",
-                    target_entity,
-                    primary,
-                    curr_val,
-                    curr_min,
-                    curr_max
-                )
+                self.logger.debug("Update %s: %s=%s (Range: %s-%s)", target_entity, primary, curr_val, curr_min, curr_max)
                 await self.hass.services.async_call("light", "turn_on", service_data)
             else:
                 self.logger.error("No target light entity ID configured for Moving Colors instance.")
