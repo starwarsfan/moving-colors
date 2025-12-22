@@ -530,10 +530,6 @@ class MovingColorsManager:
 
             count_up = getattr(self, f"_count_up_{channel}")
 
-            if not use_random:
-                self._active_min[channel] = abs_min
-                self._active_max[channel] = abs_max
-
             # 2. Logic for moving UP
             if count_up:
                 val += stepping
