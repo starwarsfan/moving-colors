@@ -542,13 +542,16 @@ class MovingColorsManager:
                     if use_random:
                         # New min is between absolute min and current position
                         self._active_min[channel] = random.randint(abs_min, int(val))
+                        self.logger.debug(
+                            "Channel %s: Hit max (%s). New random min border: %s",
+                            channel, val, self._active_min[channel]
+                        )
                     else:
                         self._active_min[channel] = abs_min
-
-                    self.logger.debug(
-                        "Channel %s: Hit max (%s). New random min border: %s",
-                        channel, val, self._active_min[channel]
-                    )
+                        self.logger.debug(
+                            "Channel %s: Hit max (%s).",
+                            channel, val
+                        )
 
             # 3. Logic for moving DOWN
             else:
@@ -562,17 +565,23 @@ class MovingColorsManager:
                     if use_random:
                         # New max is between current position and absolute max
                         self._active_max[channel] = random.randint(int(val), abs_max)
+                        self.logger.debug(
+                            "Channel %s: Hit min (%s). New random max border: %s",
+                            channel, val, self._active_max[channel]
+                        )
                     else:
                         self._active_max[channel] = abs_max
-
-                    self.logger.debug(
-                        "Channel %s: Hit min (%s). New random max border: %s",
-                        channel, val, self._active_max[channel]
-                    )
+                        self.logger.debug(
+                            "Channel %s: Hit min (%s).",
+                            channel, val
+                        )
 
             new_values[channel] = max(0, min(255, val))
 
         self._current_values = new_values
+
+        val_str = ", ".join([f"{k}: {v:.1f}" if isinstance(v, float) else f"{k}: {v}" for k, v in new_values.items()])
+        self.logger.debug("Values: %s", val_str)
 
         # Prepare service data based on color mode
         for target_entity in self._target_light_entity_id:
