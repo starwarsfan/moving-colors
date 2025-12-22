@@ -519,44 +519,71 @@ class MovingColorsManager:
         #     now = dt_util.utcnow()
         # self.logger.debug("Moving Colors update triggered at %s.", now)
 
-        min_value = self.get_config_min_value()
-        max_value = self.get_config_max_value()
+        # Configured absolute limits
+        abs_min = self.get_config_min_value()
+        abs_max = self.get_config_max_value()
         stepping = self.get_config_stepping()
         use_random = self.is_random_limits_enabled()
 
-        # For each channel, cycle independently
         new_values = self._current_values.copy()
+
         for channel in self._current_values:
             val = self._current_values[channel]
-            # Simple up/down cycling for each channel
-            if not hasattr(self, f"_count_up_{channel}"):
+
+            # 1. Initialize per-channel state if needed
+            if channel not in self._active_min:
+                self._active_min[channel] = abs_min
+                self._active_max[channel] = abs_max
                 setattr(self, f"_count_up_{channel}", True)
+
             count_up = getattr(self, f"_count_up_{channel}")
-            if count_up and val < max_value:
+
+            if not use_random:
+                self._active_min[channel] = abs_min
+                self._active_max[channel] = abs_max
+
+            # 2. Logic for moving UP
+            if count_up:
                 val += stepping
-                val = min(val, max_value)
-            elif count_up and val >= max_value:
+                # Check if we hit the CURRENT active max for this channel
+                if val >= self._active_max[channel]:
+                    val = self._active_max[channel]
+                    setattr(self, f"_count_up_{channel}", False)
+
+                    # We hit the top, generate new RANDOM MIN for the trip down
+                    if use_random:
+                        # New min is between absolute min and current position
+                        self._active_min[channel] = random.randint(abs_min, int(val))
+                    else:
+                        self._active_min[channel] = abs_min
+
+                    self.logger.debug(
+                        "Channel %s: Hit max (%s). New random min border: %s",
+                        channel, val, self._active_min[channel]
+                    )
+
+            # 3. Logic for moving DOWN
+            else:
                 val -= stepping
-                setattr(self, f"_count_up_{channel}", False)
-                if use_random:
-                    min_rand = random.randint(min_value, val)
-                    self.logger.debug("Channel %s: Reached upper boundary, switching to count down. New random lower boundary: %s", channel, min_rand)
-                else:
-                    min_rand = min_value
-                # Not used further, but could be stored per channel
-            elif not count_up and val > min_value:
-                val -= stepping
-                val = max(val, min_value)
-            elif not count_up and val <= min_value:
-                val += stepping
-                setattr(self, f"_count_up_{channel}", True)
-                if use_random:
-                    max_rand = random.randint(val, max_value)
-                    self.logger.debug("Channel %s: Reached lower boundary, switching to count up. New random upper boundary: %s", channel, max_rand)
-                else:
-                    max_rand = max_value
-                # Not used further, but could be stored per channel
+                # Check if we hit the CURRENT active min for this channel
+                if val <= self._active_min[channel]:
+                    val = self._active_min[channel]
+                    setattr(self, f"_count_up_{channel}", True)
+
+                    # We hit the bottom, generate new RANDOM MAX for the trip up
+                    if use_random:
+                        # New max is between current position and absolute max
+                        self._active_max[channel] = random.randint(int(val), abs_max)
+                    else:
+                        self._active_max[channel] = abs_max
+
+                    self.logger.debug(
+                        "Channel %s: Hit min (%s). New random max border: %s",
+                        channel, val, self._active_max[channel]
+                    )
+
             new_values[channel] = max(0, min(255, val))
+
         self._current_values = new_values
 
         # Prepare service data based on color mode
