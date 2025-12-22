@@ -475,37 +475,43 @@ class MovingColorsManager:
         """Detect color mode and initialize current values for the target light entity."""
         entity_id = self._target_light_entity_id[0]
         state = self.hass.states.get(entity_id)
-        self.logger.debug("State for %s: %s", entity_id, state)
-        if state:
-            self.logger.debug("Attributes for %s: %s", entity_id, state.attributes)
 
-        supported = state.attributes.get("supported_color_modes", []) if state else []
-        color_mode = state.attributes.get("color_mode") if state else None
+        # 1. Try to get capabilities from the Entity Registry first (more reliable)
+        registry = entity_registry.async_get(self.hass)
+        entry = registry.async_get(entity_id)
 
-        # 1. Handle RGBW
-        if "rgbw" in supported or color_mode == "rgbw":
+        # Extract capabilities from registry entry if available
+        supported_features = []
+        if entry and entry.capabilities:
+            supported_features = entry.capabilities.get("supported_color_modes", [])
+
+        # 2. Fallback to current state attributes if registry is sparse
+        if not supported_features and state:
+            supported_features = state.attributes.get("supported_color_modes", [])
+
+        self.logger.debug("Supported features for %s: %s", entity_id, supported_features)
+
+        # 3. Logic-based detection
+        if "rgbw" in supported_features:
             self._color_mode = "rgbw"
-            # Use a default list [0, 0, 0, 0] if the attribute is None
             rgbw = state.attributes.get("rgbw_color") if state else None
             if not isinstance(rgbw, (list, tuple)):
                 rgbw = [0, 0, 0, 0]
             self._current_values = {"r": rgbw[0], "g": rgbw[1], "b": rgbw[2], "w": rgbw[3]}
 
-        # 2. Handle RGB
-        elif "rgb" in supported or color_mode == "rgb" or (state and "rgb_color" in state.attributes):
+        elif "rgb" in supported_features or "xy" in supported_features:
             self._color_mode = "rgb"
             rgb = state.attributes.get("rgb_color") if state else None
             if not isinstance(rgb, (list, tuple)):
                 rgb = [0, 0, 0]
             self._current_values = {"r": rgb[0], "g": rgb[1], "b": rgb[2]}
 
-        # 3. Fallback to Brightness
         else:
             self._color_mode = "brightness"
             brightness = state.attributes.get("brightness", 0) if state else 0
             self._current_values = {"brightness": brightness}
 
-        self.logger.debug("Detected color mode: %s, initial values: %s", self._color_mode, self._current_values)
+        self.logger.debug("Final detected color mode: %s", self._color_mode)
 
     async def async_update_state(self, now: dt_util.dt.datetime | None = None) -> None:
         """Calculate the next dimming value(s) and update the light entity."""
