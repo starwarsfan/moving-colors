@@ -583,8 +583,8 @@ class MovingColorsManager:
 
         self._current_values = new_values
 
-        val_str = ", ".join([f"{k}: {v:.1f}" if isinstance(v, float) else f"{k}: {v}" for k, v in new_values.items()])
-        self.logger.debug("Values: %s", val_str)
+        # val_str = ", ".join([f"{k}: {v:.1f}" if isinstance(v, float) else f"{k}: {v}" for k, v in new_values.items()])
+        # self.logger.debug("Values: %s", val_str)
 
         # Prepare service data based on color mode
         for target_entity in self._target_light_entity_id:
