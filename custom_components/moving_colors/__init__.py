@@ -592,21 +592,14 @@ class MovingColorsManager:
                 if self.is_debug_enabled():
                     if self._color_mode in ["rgb", "rgbw"]:
                         # 1. Determine which channels to look up
-                        channels = list(self._color_mode) # results in ['r', 'g', 'b'] or ['r', 'g', 'b', 'w']
+                        channels = list(self._color_mode)  # results in ['r', 'g', 'b'] or ['r', 'g', 'b', 'w']
 
                         # 2. Build strings for current values and active ranges
                         vals_str = "/".join([str(int(self._current_values.get(c, 0))) for c in channels])
-                        ranges_str = " | ".join([
-                            f"{c}:{self._active_min.get(c)}-{self._active_max.get(c)}"
-                            for c in channels
-                        ])
+                        ranges_str = " | ".join([f"{c}:{self._active_min.get(c)}-{self._active_max.get(c)}" for c in channels])
 
                         self.logger.debug(
-                            "Update %s [%s]: Values=%s (Active Ranges: %s)",
-                            target_entity,
-                            self._color_mode.upper(),
-                            vals_str,
-                            ranges_str
+                            "Update %s [%s]: Values=%s (Active Ranges: %s)", target_entity, self._color_mode.upper(), vals_str, ranges_str
                         )
                     else:
                         # 3. Fallback for simple Brightness mode
@@ -614,13 +607,7 @@ class MovingColorsManager:
                         b_min = self._active_min.get("brightness")
                         b_max = self._active_max.get("brightness")
 
-                        self.logger.debug(
-                            "Update %s: Brightness=%s (Range: %s-%s)",
-                            target_entity,
-                            brightness,
-                            b_min,
-                            b_max
-                        )
+                        self.logger.debug("Update %s: Brightness=%s (Range: %s-%s)", target_entity, brightness, b_min, b_max)
 
                 if self._color_mode == "rgbw":
                     rgbw = [self._current_values[c] for c in "rgbw"]
