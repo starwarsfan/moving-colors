@@ -611,10 +611,10 @@ class MovingColorsManager:
 
                 if self._color_mode == "rgbw":
                     rgbw = [self._current_values[c] for c in "rgbw"]
-                    service_data = {"entity_id": target_entity, "rgbw_color": rgbw}
+                    service_data = {"entity_id": target_entity, "brightness_pct": 100, "rgbw_color": rgbw}
                 elif self._color_mode == "rgb":
                     rgb = [self._current_values[c] for c in "rgb"]
-                    service_data = {"entity_id": target_entity, "rgb_color": rgb}
+                    service_data = {"entity_id": target_entity, "brightness_pct": 100, "rgb_color": rgb}
                 else:
                     brightness = self._current_values["brightness"]
                     service_data = {"entity_id": target_entity, "brightness": brightness}
