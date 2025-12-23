@@ -530,6 +530,11 @@ class MovingColorsManager:
         new_values = self._current_values.copy()
 
         for channel in self._current_values:
+            if channel == "w":
+                # Skip white channel entirely by setting it to 0
+                new_values[channel] = max(0, min(255, 0))
+                continue
+
             val = self._current_values[channel]
 
             # 1. Initialize per-channel state if needed
