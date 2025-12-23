@@ -350,6 +350,7 @@ class MovingColorsManager:
         self._active_min: dict[str, int] = {}
         self._active_max: dict[str, int] = {}
         self._current_values: dict[str, int] = {}
+        self._color_mode = None
 
         # Boundaries and Mode Tracking
         self._steps_since_last_change: int = 0
@@ -357,10 +358,6 @@ class MovingColorsManager:
 
         # Callback for sensor updates
         self._current_value_update_callback: Callable[[int], None] | None = None
-
-        # Color mode and current values initialization
-        self._color_mode = None
-        self._current_values = {}
 
         # Detect color mode and initialize values based on the target light entity's state
         self._detect_color_mode_and_init_values()
