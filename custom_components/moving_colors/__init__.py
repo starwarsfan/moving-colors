@@ -372,12 +372,11 @@ class MovingColorsManager:
 
         self.logger.debug("Starting Moving Colors instance loop.")
         await self.async_update_state()
-        self.async_start_update_task()
 
     async def async_stop(self) -> None:
         """Stop the Moving Colors manager's operations."""
         self.logger.debug("Stopping manager lifecycle...")
-        self.stop_update_task()
+        await self.stop_update_task()
         for unsub_callback in self._unsub_callbacks:
             unsub_callback()
         self._unsub_callbacks.clear()
@@ -447,26 +446,90 @@ class MovingColorsManager:
         """Set the callback function for current value updates."""
         self._current_value_update_callback = callback_func
 
-    def async_start_update_task(self) -> None:  # Made async and renamed
+    async def async_start_update_task(self) -> None:
         """Start the periodic update task."""
-        if self.is_start_from_current_position_enabled():
-            self._current_value = self._get_brightness_of_first_light_entity()
-
+        # 1. Check if already running
         if hasattr(self, "_update_listener") and self._update_listener:
             # Already running
             return
 
+        # 2. Capture initial state
+        # This must happen before we start the timer
+        await self._capture_initial_state()
+
+        # 3. (Optional) Sync current loop values to the snapshot
+        # so the first step isn't a huge jump
+        if self.is_start_from_current_position_enabled():
+            # You'll need to implement this to pull RGBW from the snapshot
+            self._sync_current_values_to_snapshot()
+
         interval = timedelta(seconds=self.get_config_trigger_interval())
         self.logger.debug("Starting periodic update task with interval %s.", interval)
+
+        # 4. Start the timer
         self._update_listener = async_track_time_interval(self.hass, self.async_update_state, interval)
         self._unsub_callbacks.append(self._update_listener)
 
-    def stop_update_task(self) -> None:
+        # Manually trigger the first step AFTER the listener is set
+        await self.async_update_state()
+
+    async def stop_update_task(self) -> None:
         """Stop the periodic update task."""
         self.logger.debug("Stopping periodic update task.")
         if hasattr(self, "_update_listener") and self._update_listener:
-            self._update_listener()
+            self._update_listener()  # Stop the timer
+            # Remove it from the list so we don't try to call it again later
+            if self._update_listener in self._unsub_callbacks:
+                self._unsub_callbacks.remove(self._update_listener)
             self._update_listener = None
+
+        await self._restore_initial_state()
+
+    def _sync_current_values_to_snapshot(self) -> None:
+        """Align internal loop values with the physical light state (RGBW or Brightness)."""
+        if not self._initial_state:
+            return
+
+        abs_min = self.get_config_min_value()
+        abs_max = self.get_config_max_value()
+
+        # Case 1: RGBW Lights
+        if self._color_mode == "rgbw" and self._initial_state.get("rgbw_color"):
+            for i, channel in enumerate(["r", "g", "b", "w"]):
+                val = self._initial_state["rgbw_color"][i]
+                self._current_values[channel] = val
+
+                # PRIME THE LOGIC: Set boundaries and direction for each channel
+                self._active_min[channel] = abs_min
+                self._active_max[channel] = abs_max
+                setattr(self, f"_count_up_{channel}", True)
+
+            self.logger.debug("Sync: RGBW values aligned and logic primed: %s", self._current_values)
+
+        # Case 2: RGB Lights
+        elif self._color_mode == "rgb" and self._initial_state.get("rgb_color"):
+            for i, channel in enumerate(["r", "g", "b"]):
+                val = self._initial_state["rgb_color"][i]
+                self._current_values[channel] = val
+
+                # PRIME THE LOGIC: Set boundaries and direction for each channel
+                self._active_min[channel] = abs_min
+                self._active_max[channel] = abs_max
+                setattr(self, f"_count_up_{channel}", True)
+
+            self.logger.debug("Sync: RGB values aligned to %s", self._current_values)
+
+        # Case 3: Simple Brightness Lights
+        elif self._initial_state.get("brightness") is not None:
+            val = self._initial_state["brightness"]
+            self._current_values["brightness"] = val
+
+            # PRIME THE LOGIC for brightness
+            self._active_min["brightness"] = abs_min
+            self._active_max["brightness"] = abs_max
+            setattr(self, "_count_up_brightness", True)
+
+            self.logger.debug("Sync: Brightness aligned to %s", self._current_values["brightness"])
 
     def _detect_color_mode_and_init_values(self) -> None:
         """Detect color mode and initialize current values for the target light entity."""
@@ -509,6 +572,26 @@ class MovingColorsManager:
             self._current_values = {"brightness": brightness}
 
         self.logger.debug("Final detected color mode: %s", self._color_mode)
+
+    async def _capture_initial_state(self) -> None:
+        """Capture current light state before the loop starts."""
+        # We take the first target entity as the reference
+        entity_id = self._target_light_entity_id[0]
+        state = self.hass.states.get(entity_id)
+
+        if state:
+            self._initial_state = {
+                "state": state.state,  # Store 'on' or 'off'
+                "rgbw_color": state.attributes.get("rgbw_color"),
+                "rgb_color": state.attributes.get("rgb_color"),
+                "brightness": state.attributes.get("brightness"),
+            }
+            self.logger.debug("Snapshot captured for %s: %s", entity_id, self._initial_state)
+
+            # Sync internal values to current state to prevent a "jump" on the first tick
+            if self._color_mode == "rgbw" and self._initial_state["rgbw_color"]:
+                for i, char in enumerate("rgbw"):
+                    self._current_values[char] = self._initial_state["rgbw_color"][i]
 
     async def async_update_state(self, now: dt_util.dt.datetime | None = None) -> None:
         """Calculate the next dimming value(s) and update the light entity."""
@@ -622,15 +705,42 @@ class MovingColorsManager:
             else:
                 self.logger.error("No target light entity ID configured for Moving Colors instance.")
 
+    async def _restore_initial_state(self) -> None:
+        """Restore the light to its pre-loop state."""
+        if not self._initial_state:
+            return
+
+        for target_entity in self._target_light_entity_id:
+            # If the light was originally off, turn it back off
+            if self._initial_state["state"] == "off":
+                await self.hass.services.async_call("light", "turn_off", {"entity_id": target_entity})
+                continue
+
+            # Otherwise, restore the values
+            data = {"entity_id": target_entity}
+            if self._initial_state["rgbw_color"]:
+                data["rgbw_color"] = self._initial_state["rgbw_color"]
+            elif self._initial_state["rgb_color"]:
+                data["rgb_color"] = self._initial_state["rgb_color"]
+
+            if self._initial_state["brightness"]:
+                data["brightness"] = self._initial_state["brightness"]
+
+            self.logger.debug("Restoring %s to initial state.", target_entity)
+            await self.hass.services.async_call("light", "turn_on", data)
+
+        # Clear the snapshot so we don't restore it twice
+        self._initial_state = None
+
     async def async_refresh(self) -> None:
         """Handle a state change from the switches."""
         # Check if we need to start or stop the periodic task
         if self.is_enabled():
             if not self._update_listener:
-                self.async_start_update_task()
+                await self.async_start_update_task()
             await self.async_update_state()
         else:
-            self.stop_update_task()
+            await self.stop_update_task()
 
     def is_debug_enabled(self) -> bool:
         """Check if the debug switch for this instance is ON."""
