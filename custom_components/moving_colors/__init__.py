@@ -2,7 +2,6 @@
 
 import logging
 import random
-import re
 from collections.abc import Callable
 from datetime import timedelta
 from typing import Any
@@ -18,6 +17,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import entity_registry
 from homeassistant.helpers.event import async_track_state_change, async_track_time_interval
 from homeassistant.helpers.typing import ConfigType
+from homeassistant.util import slugify
 
 from .const import (
     DEBUG_ENABLED,
@@ -96,11 +96,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         return False
 
     # Sanitize logger instance name
-    # 1. Replace spaces with underscores
-    # 2. All lowercase
-    # 3. Remove all characters that are not alphanumeric or underscores
-    sanitized_instance_name = re.sub(r"\s+", "_", instance_name).lower()
-    sanitized_instance_name = re.sub(r"[^a-z0-9_]", "", sanitized_instance_name)
+    # This handles umlauts, spaces, and special characters automatically
+    sanitized_instance_name = slugify(instance_name)
 
     # Prevent empty name if there were only special characters used
     if not sanitized_instance_name:
@@ -312,12 +309,8 @@ class MovingColorsManager:
         self._target_light_entity_id = self._config.get(TARGET_LIGHT_ENTITY_ID)
 
         # Sanitize instance name
-        # 1. Replace spaces with underscores
-        # 2. All lowercase
-        # 3. Remove all characters that are not alphanumeric or underscores
-        sanitized_instance_name = re.sub(r"\s+", "_", self.name).lower()
-        sanitized_instance_name = re.sub(r"[^a-z0-9_]", "", sanitized_instance_name)
-        self.sanitized_name = sanitized_instance_name
+        # This handles umlauts, spaces, and special characters automatically
+        self.sanitized_name = slugify(self.name)
         self.logger.debug("Sanitized instance name from %s to %s", self.name, self.sanitized_name)
 
         # Check if critical values are missing, even if this might be done within async_setup_entry
