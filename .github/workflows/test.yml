@@ -40,10 +40,13 @@ jobs:
         uses: codecov/codecov-action@v4
         if: matrix.python-version == '3.13' && matrix.ha-version == '2025.1.0'
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           file: ./coverage.xml
           flags: unittests
           name: codecov-py${{ matrix.python-version }}-ha${{ matrix.ha-version }}
           fail_ci_if_error: false
+          override_branch: ${{ github.head_ref || github.ref_name }}  # <-- Branch name
+          override_commit: ${{ github.sha }}
 
       - name: Run ruff
         run: ruff check custom_components/

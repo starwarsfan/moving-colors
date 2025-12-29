@@ -58,7 +58,7 @@ The integration can be configured with one or more light entities, and it will r
 [tests]: https://github.com/starwarsfan/moving-colors/actions/workflows/test.yml
 [tests-badge]: https://img.shields.io/github/actions/workflow/status/starwarsfan/moving-colors/test.yml?style=for-the-badge&logo=github&logoColor=ccc&label=Tests
 
-[coverage]: https://codecov.io/gh/starwarsfan/moving-colors
+[coverage]: https://app.codecov.io/github/starwarsfan/moving-colors
 [coverage-badge]: https://img.shields.io/codecov/c/github/starwarsfan/moving-colors?style=for-the-badge&logo=codecov&logoColor=ccc&label=Coverage
 
 [ruff]: https://github.com/astral-sh/ruff
