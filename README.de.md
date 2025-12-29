@@ -8,7 +8,6 @@
 ![Version](https://img.shields.io/github/v/release/starwarsfan/moving-colors?style=for-the-badge) 
 [![Tests][tests-badge]][tests]
 [![Coverage][coverage-badge]][coverage]
-[![Code Quality][ruff-badge]][ruff]
 [![hacs_badge][hacsbadge]][hacs] 
 [![github][ghsbadge]][ghs] 
 [![BuyMeCoffee][buymecoffeebadge]][buymecoffee] 
