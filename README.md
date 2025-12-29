@@ -5,7 +5,15 @@
 
 **A Home Assistant integration to randomize rgb lights.**
 
-![Version](https://img.shields.io/github/v/release/starwarsfan/moving-colors?style=for-the-badge) [![hacs_badge][hacsbadge]][hacs] [![github][ghsbadge]][ghs] [![BuyMeCoffee][buymecoffeebadge]][buymecoffee] [![PayPal][paypalbadge]][paypal] [![hainstall][hainstallbadge]][hainstall]
+![Version](https://img.shields.io/github/v/release/starwarsfan/moving-colors?style=for-the-badge) 
+[![Tests][tests-badge]][tests]
+[![Coverage][coverage-badge]][coverage]
+[![Code Quality][ruff-badge]][ruff]
+[![hacs_badge][hacsbadge]][hacs] 
+[![github][ghsbadge]][ghs] 
+[![BuyMeCoffee][buymecoffeebadge]][buymecoffee] 
+[![PayPal][paypalbadge]][paypal] 
+[![hainstall][hainstallbadge]][hainstall]
 
 Gehe zur [deutschen Version](/README.de.md) der Dokumentation.
 
@@ -47,3 +55,12 @@ The integration can be configured with one or more light entities, and it will r
 
 [hainstall]: https://my.home-assistant.io/redirect/config_flow_start/?domain=moving_colors
 [hainstallbadge]: https://img.shields.io/badge/dynamic/json?style=for-the-badge&logo=home-assistant&logoColor=ccc&label=usage&suffix=%20installs&cacheSeconds=15600&url=https://analytics.home-assistant.io/custom_integrations.json&query=$.moving_colors.total
+
+[tests]: https://github.com/starwarsfan/moving-colors/actions/workflows/test.yml
+[tests-badge]: https://img.shields.io/github/actions/workflow/status/starwarsfan/moving-colors/test.yml?style=for-the-badge&logo=github&logoColor=ccc&label=Tests
+
+[coverage]: https://codecov.io/gh/starwarsfan/moving-colors
+[coverage-badge]: https://img.shields.io/codecov/c/github/starwarsfan/moving-colors?style=for-the-badge&logo=codecov&logoColor=ccc&label=Coverage
+
+[ruff]: https://github.com/astral-sh/ruff
+[ruff-badge]: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json&style=for-the-badge
