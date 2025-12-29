@@ -16,7 +16,7 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.12", "3.13"]
-        ha-version: ["2024.12.0", "2025.1.0"]  # Teste gegen mehrere Versionen
+        ha-version: ["2024.12.0", "2025.1.0"]
 
     steps:
       - uses: actions/checkout@v4
@@ -33,8 +33,17 @@ jobs:
           pip install -r requirements_test.txt --no-deps
           pip install pytest pytest-homeassistant-custom-component pytest-cov ruff
 
-      - name: Run tests
-        run: pytest tests/ -v
+      - name: Run tests with coverage
+        run: pytest tests/ -v --cov=custom_components.moving_colors --cov-report=xml --cov-report=term
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        if: matrix.python-version == '3.13' && matrix.ha-version == '2025.1.0'
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-py${{ matrix.python-version }}-ha${{ matrix.ha-version }}
+          fail_ci_if_error: false
 
       - name: Run ruff
         run: ruff check custom_components/
