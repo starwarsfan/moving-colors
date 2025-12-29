@@ -2,5 +2,5 @@
 
 # Development Testing
 pytest>=8.0.0
-pytest-homeassistant-custom-component>=0.13.236
+pytest-homeassistant-custom-component
 pytest-cov>=4.0.0
