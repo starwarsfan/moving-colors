@@ -1,6 +1,7 @@
 """Test moving_colors sensor."""
-from homeassistant.core import HomeAssistant
+
 from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
+from homeassistant.core import HomeAssistant
 
 
 async def test_sensor_setup(hass: HomeAssistant, mock_config_entry, mock_light) -> None:

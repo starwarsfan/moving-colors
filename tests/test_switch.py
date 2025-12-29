@@ -1,4 +1,5 @@
 """Test moving_colors switch."""
+
 from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 from homeassistant.const import (
     ATTR_ENTITY_ID,
@@ -21,7 +22,7 @@ async def test_switch_setup(hass: HomeAssistant, mock_config_entry, mock_light) 
     assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
     await hass.async_block_till_done()
 
-    # Check enable switch exists (echter Name!)
+    # Check enable switch exists
     entity_id = "switch.test_moving_colors_enable_moving_colors"
     state = hass.states.get(entity_id)
 
@@ -40,30 +41,37 @@ async def test_switch_turn_on_off(hass: HomeAssistant, mock_config_entry, mock_l
 
     entity_id = "switch.test_moving_colors_enable_moving_colors"
 
-    # Get initial state
-    state = hass.states.get(entity_id)
-    assert state is not None
+    # Just verify the switch can be controlled, regardless of initial state
+    initial_state = hass.states.get(entity_id)
+    assert initial_state is not None
+    initial_value = initial_state.state
 
-    # Turn on
+    # Try toggling
+    target_service = SERVICE_TURN_OFF if initial_value == STATE_ON else SERVICE_TURN_ON
+    target_state = STATE_OFF if initial_value == STATE_ON else STATE_ON
+
     await hass.services.async_call(
         SWITCH_DOMAIN,
-        SERVICE_TURN_ON,
+        target_service,
         {ATTR_ENTITY_ID: entity_id},
         blocking=True,
     )
     await hass.async_block_till_done()
 
-    state = hass.states.get(entity_id)
-    assert state.state == STATE_ON
+    new_state = hass.states.get(entity_id)
+    assert new_state is not None
+    assert new_state.state == target_state
 
-    # Turn off
+    # Toggle back
+    target_service = SERVICE_TURN_ON if target_state == STATE_OFF else SERVICE_TURN_OFF
     await hass.services.async_call(
         SWITCH_DOMAIN,
-        SERVICE_TURN_OFF,
+        target_service,
         {ATTR_ENTITY_ID: entity_id},
         blocking=True,
     )
     await hass.async_block_till_done()
 
-    state = hass.states.get(entity_id)
-    assert state.state == STATE_OFF
+    final_state = hass.states.get(entity_id)
+    assert final_state is not None
+    assert final_state.state == initial_value
