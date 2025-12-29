@@ -250,7 +250,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Stop the periodic update task
     manager: MovingColorsManager = hass.data[DOMAIN_DATA_MANAGERS].get(entry.entry_id)
     if manager:
-        manager.stop_update_task()
+        await manager.stop_update_task()
 
     # Unload platforms
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
@@ -520,7 +520,7 @@ class MovingColorsManager:
             # PRIME THE LOGIC for brightness
             self._active_min["brightness"] = abs_min
             self._active_max["brightness"] = abs_max
-            setattr(self, "_count_up_brightness", True)
+            self._count_up_brightness = True
 
             self.logger.debug("Sync: Brightness aligned to %s", self._current_values["brightness"])
 
