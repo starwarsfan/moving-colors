@@ -1,11 +1,7 @@
 """Test moving_colors number."""
-
-from homeassistant.components.number import DOMAIN as NUMBER_DOMAIN
-from homeassistant.components.number import SERVICE_SET_VALUE
+from homeassistant.components.number import DOMAIN as NUMBER_DOMAIN, SERVICE_SET_VALUE
 from homeassistant.const import ATTR_ENTITY_ID, EVENT_HOMEASSISTANT_STARTED
 from homeassistant.core import HomeAssistant
-
-from custom_components.moving_colors.const import MCInternal, MCInternalDefaults
 
 
 async def test_number_setup(hass: HomeAssistant, mock_config_entry, mock_light) -> None:
@@ -18,8 +14,8 @@ async def test_number_setup(hass: HomeAssistant, mock_config_entry, mock_light) 
     assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
     await hass.async_block_till_done()
 
-    # Check that at least one number entity exists
-    entity_id = f"number.test_moving_colors_{MCInternal.START_VALUE_MANUAL.value}"
+    # Check that number entities exist
+    entity_id = "number.test_moving_colors_start_value"
     state = hass.states.get(entity_id)
 
     assert state is not None, f"Number entity {entity_id} was not created"
@@ -35,11 +31,20 @@ async def test_number_default_values(hass: HomeAssistant, mock_config_entry, moc
     assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
     await hass.async_block_till_done()
 
-    # Check start value
-    entity_id = f"number.test_moving_colors_{MCInternal.START_VALUE_MANUAL.value}"
-    state = hass.states.get(entity_id)
+    # Check start value (default: 125)
+    state = hass.states.get("number.test_moving_colors_start_value")
     assert state is not None
-    assert float(state.state) == MCInternalDefaults.START_VALUE.value
+    assert float(state.state) == 125.0
+
+    # Check min value (default: 0)
+    state = hass.states.get("number.test_moving_colors_minimum_value")
+    assert state is not None
+    assert float(state.state) == 0.0
+
+    # Check max value (default: 255)
+    state = hass.states.get("number.test_moving_colors_maximum_value")
+    assert state is not None
+    assert float(state.state) == 255.0
 
 
 async def test_number_set_value(hass: HomeAssistant, mock_config_entry, mock_light) -> None:
@@ -52,7 +57,7 @@ async def test_number_set_value(hass: HomeAssistant, mock_config_entry, mock_lig
     assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
     await hass.async_block_till_done()
 
-    entity_id = f"number.test_moving_colors_{MCInternal.START_VALUE_MANUAL.value}"
+    entity_id = "number.test_moving_colors_start_value"
 
     # Set value
     await hass.services.async_call(

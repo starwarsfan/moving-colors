@@ -324,6 +324,7 @@ class MovingColorsManager:
 
         self._unsub_callbacks: list[Callable[[], None]] = []
         self._update_listener: Callable[[], None] | None = None  # To store the interval task unlistener
+        self._initial_state = None
 
         # 1. Structural Config Helper (fixes repetitive code and ANN202)
         def get_conf(key: str, default: Any = None) -> Any:
