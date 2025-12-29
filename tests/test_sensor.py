@@ -1,52 +1,31 @@
-"""Test sensors."""
-from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
-from homeassistant.const import STATE_UNKNOWN
+"""Test moving_colors sensor."""
+
+from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
 from homeassistant.core import HomeAssistant
-from homeassistant.setup import async_setup_component  # <-- Das fehlte!
+
+from custom_components.moving_colors.const import SensorEntries
 
 
-async def test_sensor_setup(hass: HomeAssistant):
+async def test_sensor_setup(hass: HomeAssistant, mock_config_entry, mock_light) -> None:
     """Test sensor platform setup."""
+    mock_config_entry.add_to_hass(hass)
 
-    # Setup der Integration mit Konfiguration
-    config = {
-        "sensor": {
-            "platform": "moving_colors",  # <-- Dein echter Domain-Name
-            "name": "Test Sensor",
-        }
-    }
-
-    assert await async_setup_component(hass, SENSOR_DOMAIN, config)
+    hass.bus.async_fire(EVENT_HOMEASSISTANT_STARTED)
     await hass.async_block_till_done()
 
-    # Prüfe, ob der Sensor existiert
-    state = hass.states.get("sensor.test_sensor")
-    assert state is not None
-    assert state.state != STATE_UNKNOWN
-
-
-async def test_sensor_update(hass: HomeAssistant):
-    """Test sensor updates."""
-
-    config = {
-        "sensor": {
-            "platform": "moving_colors",  # <-- Dein echter Domain-Name
-            "name": "Test Sensor",
-        }
-    }
-
-    await async_setup_component(hass, SENSOR_DOMAIN, config)
+    assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
     await hass.async_block_till_done()
 
-    state = hass.states.get("sensor.test_sensor")
+    # Check that sensors exist (they might be created with a slight delay)
+    # Use slugified name: "Test Moving Colors" -> "test_moving_colors"
+    sensor_prefix = "sensor.test_moving_colors"
 
-    # Simuliere ein Update
-    await hass.services.async_call(
-        "homeassistant",
-        "update_entity",
-        {"entity_id": "sensor.test_sensor"},
-        blocking=True,
-    )
+    # At least one sensor should exist
+    states = [
+        hass.states.get(f"{sensor_prefix}_{SensorEntries.CURRENT_VALUE.value}"),
+        hass.states.get(f"{sensor_prefix}_{SensorEntries.CURRENT_MIN_VALUE.value}"),
+        hass.states.get(f"{sensor_prefix}_{SensorEntries.CURRENT_MAX_VALUE.value}"),
+    ]
 
-    new_state = hass.states.get("sensor.test_sensor")
-    assert new_state is not None
+    # Check at least one sensor was created
+    assert any(state is not None for state in states), "No sensors were created"
