@@ -60,6 +60,3 @@ The integration can be configured with one or more light entities, and it will r
 
 [coverage]: https://app.codecov.io/github/starwarsfan/moving-colors
 [coverage-badge]: https://img.shields.io/codecov/c/github/starwarsfan/moving-colors?style=for-the-badge&logo=codecov&logoColor=ccc&label=Coverage
-
-[ruff]: https://github.com/astral-sh/ruff
-[ruff-badge]: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json&style=for-the-badge
