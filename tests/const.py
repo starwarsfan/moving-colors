@@ -14,6 +14,6 @@ MOCK_CONFIG_DATA = {
 
 MOCK_CONFIG_USER_INPUT = {
     MC_CONF_NAME: "Test Moving Colors",
-    TARGET_LIGHT_ENTITY_ID: "light.test_light",  # <-- Das fehlte!
+    TARGET_LIGHT_ENTITY_ID: "light.test_light",
     DEBUG_ENABLED: False,
 }
