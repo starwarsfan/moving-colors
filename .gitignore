@@ -12,6 +12,7 @@ __pycache__
 coverage.xml
 .ruff_cache
 .idea/
+junit.xml
 
 # Home Assistant configuration
 config/*
