@@ -176,7 +176,7 @@ class MovingColorsConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             options_data_for_entry = {
                 key: value
                 for key, value in user_input.items()
-                if key not in {MC_CONF_NAME}  # Remove instance name
+                if key != MC_CONF_NAME  # Remove instance name
             }
 
             # All fine, now perform voluptuous validation
