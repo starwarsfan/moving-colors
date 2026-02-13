@@ -251,12 +251,17 @@ class MovingColorsExternalEntityValueSensor(SensorEntity):
     @callback
     def _update_from_state(self, state: State) -> None:
         """Parse the state object and update the sensor value."""
+        # HA special states must be mapped to None so the sensor reports as unavailable,
+        # preventing a ValueError when state_class='measurement' is set.
+        if state.state in ("unavailable", "unknown"):
+            self._current_value = None
+            return
+
         # Try to convert to float if a unit is defined (assuming it's a number sensor)
         if self.native_unit_of_measurement:
             try:
                 self._current_value = float(state.state)
             except (ValueError, TypeError):
-                # Fallback for 'unavailable', 'unknown', or invalid string values
                 self._current_value = state.state
         else:
             # For non-numeric sensors (e.g., switches, selects), just use the state string
