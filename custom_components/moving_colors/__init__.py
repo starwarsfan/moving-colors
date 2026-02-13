@@ -591,7 +591,7 @@ class MovingColorsManager:
         """Calculate the next dimming value(s) and update the light entity."""
         if not self.is_enabled():
             self.logger.debug("Moving Colors is disabled, skipping update.")
-            self.stop_update_task()
+            await self.stop_update_task()
             return
 
         # if now is None:
