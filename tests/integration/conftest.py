@@ -98,7 +98,8 @@ def use_real_timers():
 
 @pytest.fixture(autouse=True)
 def mock_light_services(hass: HomeAssistant):
-    """Mock light services to prevent ServiceNotFound when integration calls light.turn_on."""
+    """Mock light services to prevent ServiceNotFound when integration calls light services."""
+    async_mock_service(hass, "light", "turn_off")
     return async_mock_service(hass, "light", "turn_on")
 
 
@@ -123,7 +124,9 @@ def mock_config_entry_fixture() -> MockConfigEntry:
         domain=DOMAIN,
         data={
             MC_CONF_NAME: "Test Moving Colors",
-            TARGET_LIGHT_ENTITY_ID: "light.test_light",
+        },
+        options={
+            TARGET_LIGHT_ENTITY_ID: ["light.test_light"],
             DEBUG_ENABLED: False,
         },
         entry_id="test_entry_id",
