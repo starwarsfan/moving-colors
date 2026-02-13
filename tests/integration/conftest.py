@@ -8,7 +8,7 @@ from colorlog import ColoredFormatter
 from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
 from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
-from pytest_homeassistant_custom_component.common import MockConfigEntry, async_fire_time_changed
+from pytest_homeassistant_custom_component.common import MockConfigEntry, async_fire_time_changed, async_mock_service
 
 from custom_components.moving_colors.const import (
     DEBUG_ENABLED,
@@ -94,6 +94,12 @@ def use_real_timers():
 # ============================================================================
 # Core Fixtures
 # ============================================================================
+
+
+@pytest.fixture(autouse=True)
+def mock_light_services(hass: HomeAssistant):
+    """Mock light services to prevent ServiceNotFound when integration calls light.turn_on."""
+    return async_mock_service(hass, "light", "turn_on")
 
 
 @pytest.fixture(name="mock_light")
