@@ -35,6 +35,8 @@ Go to the [English version](/README.md) version of the documentation.
   * [Farbwert von aktueller Position starten](#farbwert-von-aktueller-position-starten)
   * [Schritte zum Standardwert](#schritte-zum-standardwert)
   * [Debug-Modus](#debug-modus)
+* [Konfiguration via yaml](#konfiguration-via-yaml)
+  * [yaml Beispielkonfiguration](#yaml-beispielkonfiguration)
 
 
 
@@ -139,6 +141,43 @@ Schritte bis zum Standardwert, wenn der Standardmodus aktiviert ist und der Farb
 
 Debug-Logs für diese Instanz aktivieren.
 
+
+
+# Konfiguration via yaml
+
+Es ist möglich, die **Moving Colors** Instanzen via yaml zu konfigurieren. Dazu müssen die entsprechenden Konfigurationen im `configuration.yaml` einmalig eingetragen und Home Assistant neu gestartet werden. **Moving Colors** wird die yaml-Konfiguration einlesen und entsprechende Instanzen anlegen. Diese Instanzen können im Anschluss via ConfigFlow bearbeitet werden. Änderungen an der yaml-Konfiguration werden nicht übernommen, da die gesamte Konfiguration via Home Assistant ConfigFlow abgebildet wird. Sollen die yaml-Konfigurationen dennoch neu eingelesen werden, müssen die entsprechenden **Moving Colors** Instanzen zunächst gelöscht und dann Home Assistant neu gestartet werden.
+
+## yaml Beispielkonfiguration
+
+Die Einträge der Konfiguration folgen den oben in der Dokumentation jeweils genannten Schlüsselwörtern. Nicht verwendete Schlüsselwörter müssen auskommentiert oder entfernt werden.
+
+```yaml
+moving_colors:
+  - name: "MC Dummy 2"
+    target_light_entity:
+      - light.licht_buro_2
+    #debug_enabled: false
+    #enabled_manual: false
+    #enabled_entity:
+    #start_value_manual: 0
+    #start_value_entity:
+    #min_value_manual: 0
+    #min_value_entity:
+    #max_value_manual: 255
+    #max_value_entity:
+    #stepping_manual: 3
+    #stepping_entity:
+    #trigger_interval_manual: 3
+    #trigger_interval_entity:
+    #random_limits_manual: true
+    #random_limits_entity:
+    #default_mode_enabled_manual: false
+    #default_mode_enabled_entity:
+    #default_value_manual: 125
+    #default_value_entity:
+    #steps_to_default_manual: 10
+    #steps_to_default_entity:
+```
 
 
 

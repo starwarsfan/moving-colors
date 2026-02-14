@@ -35,6 +35,8 @@ Gehe zur [deutschen Version](/README.de.md) der Dokumentation.
   * [Start color value from current position](#start-color-value-from-current-position)
   * [Steps to default value](#steps-to-default-value)
   * [Debug mode](#debug-mode)
+* [Configuration by YAML](#configuration-by-yaml)
+  * [Example YAML configuration](#example-yaml-configuration)
 
 
 
@@ -139,6 +141,43 @@ Steps to reach the default value after disabling the color transition.
 
 Activate debug logs for this instance
 
+
+
+# Configuration by YAML
+
+It is possible to configure **Moving Colors** instances using YAML. To do so, you need to add the corresponding configuration to `configuration.yaml` and restart Home Assistant. After that, the YAML configuration be loaded and **Moving Colors** creates the corresponding instances. These instances could be modified afterward using Home Assistant ConfigFlow. Modifications right on the YAML content is not supportet. To reload the YAML configuration, you need to remove the existing **Moving Colors** instances and restart Home Assistant.
+
+## Example YAML configuration
+
+The entries within the configuration follow the mentioned keywords within the documentation above. Unused keywords must be commented (disabled) or removed.
+
+```yaml
+moving_colors:
+  - name: "MC Dummy 2"
+    target_light_entity:
+      - light.licht_buro_2
+    #debug_enabled: false
+    #enabled_manual: false
+    #enabled_entity:
+    #start_value_manual: 0
+    #start_value_entity:
+    #min_value_manual: 0
+    #min_value_entity:
+    #max_value_manual: 255
+    #max_value_entity:
+    #stepping_manual: 3
+    #stepping_entity:
+    #trigger_interval_manual: 3
+    #trigger_interval_entity:
+    #random_limits_manual: true
+    #random_limits_entity:
+    #default_mode_enabled_manual: false
+    #default_mode_enabled_entity:
+    #default_value_manual: 125
+    #default_value_entity:
+    #steps_to_default_manual: 10
+    #steps_to_default_entity:
+```
 
 
 
