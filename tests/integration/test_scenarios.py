@@ -203,51 +203,60 @@ async def test_brightness_stays_within_default_bounds(hass: HomeAssistant, mc_en
 async def test_brightness_reverses_direction_at_max(hass: HomeAssistant, mc_entry: MockConfigEntry, time_travel) -> None:
     """Scenario: Brightness reverses when hitting max boundary.
 
-    Given: Narrow range max=15, min=0 so boundary is hit quickly
-    When:  Moving Colors runs from 0 upward
-    Then:  After hitting max, count_up becomes False
+    Given: Range [0, 255], mock_light starts at brightness=128
+    When:  _direction_from_position sets count_up=True (128 < midpoint 127? No: False → count_up=False)
+           Actually 128 > 127.5 → count_up=False initially, so we wait for it to hit min=0 first,
+           then bounce up to max=255.
+    Then:  After hitting max=255, count_up becomes False.
+
+    Strategy: Run until count_up transitions to False after having been True.
+    Max ticks: (255/3)*2 + margin = 200 ticks.
     """
     manager = get_manager(hass, mc_entry)
-
-    # Set narrow range BEFORE enable - _sync_current_values_to_snapshot
-    # picks up abs_min/abs_max from get_config_min/max_value at enable time.
-    # mock_light has brightness=128, so sync starts at 128.
-    # With max=15 the sync would set brightness=128 but active_max=15,
-    # so the first update clamps to max=15 immediately.
-    await set_number(hass, NUMBER_MIN, 0)
-    await set_number(hass, NUMBER_MAX, 15)
     await enable_mc(hass)
 
-    # Run enough ticks to bounce (15/3 = 5 steps, use 10 for safety)
-    for _ in range(10):
+    seen_count_up_true = False
+    bounced_at_max = False
+    for _ in range(200):
         await time_travel(seconds=INTERVAL + 1)
+        count_up = manager._count_up_brightness
+        if count_up:
+            seen_count_up_true = True
+        if seen_count_up_true and not count_up:
+            bounced_at_max = True
+            break
 
-    brightness = manager._current_values["brightness"]
-    count_up = manager._count_up_brightness
-    assert not count_up, f"After hitting max=15, direction should be DOWN. brightness={brightness}, count_up={count_up}"
+    assert bounced_at_max, (
+        f"Expected brightness to hit max=255 and reverse direction within 200 ticks. "
+        f"brightness={manager._current_values['brightness']}, count_up={manager._count_up_brightness}"
+    )
+    assert manager._current_values["brightness"] == MAX_VALUE
 
 
 async def test_brightness_reverses_direction_at_min(hass: HomeAssistant, mc_entry: MockConfigEntry, time_travel) -> None:
     """Scenario: Brightness reverses when hitting min boundary.
 
-    Given: Narrow range max=15, min=0, starting near top
-    When:  Moving Colors runs down and hits min=0
-    Then:  count_up becomes True again
+    Given: Range [0, 255], mock_light starts at brightness=128
+    When:  _direction_from_position: 128 > 127.5 → count_up=False, moves DOWN first
+    Then:  After hitting min=0, count_up becomes True.
+
+    Strategy: Run until count_up transitions to True (first min bounce).
+    Max ticks: 128/3 + margin = 50 ticks.
     """
     manager = get_manager(hass, mc_entry)
-    await set_number(hass, NUMBER_MIN, 0)
-    await set_number(hass, NUMBER_MAX, 15)
     await enable_mc(hass)
 
-    # Run enough ticks to bounce twice (up to 15, then down to 0)
-    # Simulation: after enable, first update hits max=15 immediately (count_up=False).
-    # Then exactly 5 ticks reach min=0 (15→12→9→6→3→0, count_up→True).
-    for _ in range(5):
+    bounced_at_min = False
+    for _ in range(60):
         await time_travel(seconds=INTERVAL + 1)
+        if manager._count_up_brightness and manager._current_values["brightness"] == MIN_VALUE:
+            bounced_at_min = True
+            break
 
-    count_up = manager._count_up_brightness
-    brightness = manager._current_values["brightness"]
-    assert count_up, f"After 5 ticks from max=15 down to min=0, direction should be UP. brightness={brightness}, count_up={count_up}"
+    assert bounced_at_min, (
+        f"Expected brightness to hit min=0 and reverse direction within 60 ticks. "
+        f"brightness={manager._current_values['brightness']}, count_up={manager._count_up_brightness}"
+    )
 
 
 async def test_brightness_stops_when_disabled(hass: HomeAssistant, mc_entry: MockConfigEntry, time_travel) -> None:
@@ -287,8 +296,8 @@ async def test_direction_preserved_after_restart(hass: HomeAssistant, mc_entry: 
     await set_number(hass, NUMBER_MAX, 15)
     await enable_mc(hass)
 
-    # After enable: first update hits max=15 → count_up=False.
-    # Tick 10 lands at val=15 (count_up=False) per simulation.
+    # mock_light brightness=128, max=15: _direction_from_position → count_up=False from start.
+    # After 10 ticks count_up remains False (still descending from 128).
     for _ in range(10):
         await time_travel(seconds=INTERVAL + 1)
     assert not manager._count_up_brightness, "Should be going DOWN before restart"
@@ -360,7 +369,8 @@ async def test_custom_stepping_affects_speed(hass: HomeAssistant, mc_entry: Mock
     await enable_mc(hass)
 
     # After enable, _sync sets brightness=128 (from mock_light).
-    # First tick (already called in async_start_update_task) adds 20 → ~148.
+    # _direction_from_position: 128 > 127.5 → count_up=False → first tick subtracts 20 → 108.
+    # abs() ensures the test passes regardless of direction.
     value_after_start = manager._current_values["brightness"]
     await time_travel(seconds=INTERVAL + 1)
     value_after_tick = manager._current_values["brightness"]

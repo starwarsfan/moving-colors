@@ -356,6 +356,9 @@ class MovingColorsManager:
         # Detect color mode and initialize values based on the target light entity's state
         self._detect_color_mode_and_init_values()
 
+        # Flag: True after the loop has run at least once (used for resume logic)
+        self._loop_has_run: bool = False
+
         self.logger.debug("[%s] Manager initialized for target: %s", self.name, self._target_light_entity_id)
 
     async def async_start(self) -> None:
@@ -444,15 +447,37 @@ class MovingColorsManager:
             # Already running
             return
 
-        # 2. Capture initial state
-        # This must happen before we start the timer
-        await self._capture_initial_state()
-
-        # 3. (Optional) Sync current loop values to the snapshot
-        # so the first step isn't a huge jump
-        if self.is_start_from_current_position_enabled():
-            # You'll need to implement this to pull RGBW from the snapshot
-            self._sync_current_values_to_snapshot()
+        # 2. Check if we have previous loop state to resume from.
+        # _loop_has_run is set to True after the first successful update cycle,
+        # so on restart we can pick up exactly where we left off.
+        if self._loop_has_run:
+            # Resume from where we left off - just re-capture initial state for
+            # restore-on-stop, but keep _current_values and directions intact
+            self.logger.debug("Resuming from previous loop state: %s", self._current_values)
+            await self._capture_initial_state()
+        else:
+            # First start or after full reset: capture state and sync
+            await self._capture_initial_state()
+            if self.is_start_from_current_position_enabled():
+                self._sync_current_values_to_snapshot()
+            else:
+                # No previous state and start_from_current_position disabled:
+                # stagger channels for immediate divergence
+                abs_min = self.get_config_min_value()
+                abs_max = self.get_config_max_value()
+                if self._color_mode in ("rgb", "rgbw"):
+                    self._stagger_channel_values(["r", "g", "b"], abs_min, abs_max)
+                    if self._color_mode == "rgbw":
+                        self._current_values["w"] = 0
+                        self._active_min["w"] = 0
+                        self._active_max["w"] = 0
+                        self._count_up_w = True
+                else:
+                    # Use brightness from light state (set by _detect_color_mode_and_init_values)
+                    val = self._current_values.get("brightness", abs_min)
+                    self._active_min["brightness"] = abs_min
+                    self._active_max["brightness"] = abs_max
+                    self._count_up_brightness = self._direction_from_position(val, abs_min, abs_max)
 
         interval = timedelta(seconds=self.get_config_trigger_interval())
         self.logger.debug("Starting periodic update task with interval %s.", interval)
@@ -463,6 +488,7 @@ class MovingColorsManager:
 
         # Manually trigger the first step AFTER the listener is set
         await self.async_update_state()
+        self._loop_has_run = True
 
     async def stop_update_task(self) -> None:
         """Stop the periodic update task."""
@@ -475,6 +501,16 @@ class MovingColorsManager:
             self._update_listener = None
 
         await self._restore_initial_state()
+
+    def _direction_from_position(self, val: int, abs_min: int, abs_max: int) -> bool:
+        """
+        Derive a sensible count_up direction from the current channel value.
+
+        If the value is in the upper half of the range, count DOWN to avoid
+        immediately bouncing off the max boundary. Otherwise count UP.
+        """
+        midpoint = (abs_min + abs_max) / 2
+        return val < midpoint
 
     def _stagger_channel_values(self, channels: list[str], abs_min: int, abs_max: int) -> None:
         """
@@ -513,17 +549,18 @@ class MovingColorsManager:
         if self._color_mode == "rgbw":
             if self._initial_state.get("rgbw_color"):
                 # Light was on: restore RGB channel values, w always 0
+                # Derive direction from current position to avoid immediate boundary bounces
                 for i, channel in enumerate(["r", "g", "b"]):
                     val = self._initial_state["rgbw_color"][i]
                     self._current_values[channel] = val
                     self._active_min[channel] = abs_min
                     self._active_max[channel] = abs_max
-                    setattr(self, f"_count_up_{channel}", True)
+                    setattr(self, f"_count_up_{channel}", self._direction_from_position(val, abs_min, abs_max))
                 self._current_values["w"] = 0
                 self._active_min["w"] = 0
                 self._active_max["w"] = 0
                 self._count_up_w = True
-                self.logger.debug("Sync: RGBW values aligned and logic primed (w=0): %s", self._current_values)
+                self.logger.debug("Sync: RGBW values aligned from current position (w=0): %s", self._current_values)
             else:
                 # Light was off: stagger channels so they move independently
                 self.logger.debug("Sync: RGBW light was off, staggering channel start values.")
@@ -537,13 +574,14 @@ class MovingColorsManager:
         elif self._color_mode == "rgb":
             if self._initial_state.get("rgb_color"):
                 # Light was on: restore actual channel values
+                # Derive direction from current position to avoid immediate boundary bounces
                 for i, channel in enumerate(["r", "g", "b"]):
                     val = self._initial_state["rgb_color"][i]
                     self._current_values[channel] = val
                     self._active_min[channel] = abs_min
                     self._active_max[channel] = abs_max
-                    setattr(self, f"_count_up_{channel}", True)
-                self.logger.debug("Sync: RGB values aligned to %s", self._current_values)
+                    setattr(self, f"_count_up_{channel}", self._direction_from_position(val, abs_min, abs_max))
+                self.logger.debug("Sync: RGB values aligned from current position: %s", self._current_values)
             else:
                 # Light was off: stagger channels so they move independently
                 self.logger.debug("Sync: RGB light was off, staggering channel start values.")
@@ -555,8 +593,10 @@ class MovingColorsManager:
             self._current_values["brightness"] = val
             self._active_min["brightness"] = abs_min
             self._active_max["brightness"] = abs_max
-            self._count_up_brightness = True
-            self.logger.debug("Sync: Brightness aligned to %s", self._current_values["brightness"])
+            self._count_up_brightness = self._direction_from_position(val, abs_min, abs_max)
+            self.logger.debug(
+                "Sync: Brightness aligned from current position: %s (count_up=%s)", self._current_values["brightness"], self._count_up_brightness
+            )
 
     def _detect_color_mode_and_init_values(self) -> None:
         """Detect color mode and initialize current values for the target light entity."""
@@ -614,12 +654,9 @@ class MovingColorsManager:
                 "brightness": state.attributes.get("brightness"),
             }
             self.logger.debug("Snapshot captured for %s: %s", entity_id, self._initial_state)
-
-            # Sync internal values to current state to prevent a "jump" on the first tick
-            if self._color_mode == "rgbw" and self._initial_state["rgbw_color"]:
-                for i, char in enumerate("rgb"):
-                    self._current_values[char] = self._initial_state["rgbw_color"][i]
-                self._current_values["w"] = 0  # w always 0
+            # Note: _current_values are NOT updated here - that is the responsibility
+            # of _sync_current_values_to_snapshot (called on first start) or the
+            # resume path (which preserves existing _current_values intentionally).
 
     async def async_update_state(self, now: dt_util.dt.datetime | None = None) -> None:
         """Calculate the next dimming value(s) and update the light entity."""
