@@ -33,8 +33,25 @@ async def async_setup_entry(
 
     instance_logger.debug("[%s] Creating sensors for manager: %s (from entry %s)", DOMAIN, manager.name, config_entry.entry_id)
 
+    # Create value sensors depending on the detected color mode of the configured light
+    color_mode = manager.get_color_mode()
+    instance_logger.debug("[%s] Creating sensors for color mode: %s", DOMAIN, color_mode)
+
+    if color_mode in ("rgb", "rgbw"):
+        # RGB and RGBW: one sensor per channel (w is always 0, so no w-sensor)
+        value_sensors = [
+            MovingColorsSensor(manager, config_entry.entry_id, SensorEntries.CURRENT_RED),
+            MovingColorsSensor(manager, config_entry.entry_id, SensorEntries.CURRENT_GREEN),
+            MovingColorsSensor(manager, config_entry.entry_id, SensorEntries.CURRENT_BLUE),
+        ]
+    else:
+        # Brightness: single value sensor
+        value_sensors = [
+            MovingColorsSensor(manager, config_entry.entry_id, SensorEntries.CURRENT_VALUE),
+        ]
+
     entities_to_add = [
-        MovingColorsSensor(manager, config_entry.entry_id, SensorEntries.CURRENT_VALUE),
+        *value_sensors,
         MovingColorsSensor(manager, config_entry.entry_id, SensorEntries.CURRENT_MIN_VALUE),
         MovingColorsSensor(manager, config_entry.entry_id, SensorEntries.CURRENT_MAX_VALUE),
     ]
@@ -115,11 +132,12 @@ class MovingColorsSensor(SensorEntity):
         # Use stable unique_id based on entry_id and the sensor type
         self._attr_unique_id = f"{self._entry_id}_{self._sensor_entry_type.value}"
 
-        # Define key used within translation files based on enum values e.g. "target_height".
+        # Define key used within translation files based on enum values.
+        # e.g. SensorEntries.CURRENT_RED -> "sensor_current_red"
         self._attr_translation_key = f"sensor_{self._sensor_entry_type.value}"
 
         self._attr_state_class = "measurement"
-        self._attr_native_unit_of_measurement = "%"
+        self._attr_native_unit_of_measurement = None
 
         # Connect with the device (important for UI)
         self._attr_device_info = DeviceInfo(
@@ -149,21 +167,27 @@ class MovingColorsSensor(SensorEntity):
         value = None
         if self._sensor_entry_type == SensorEntries.CURRENT_VALUE:
             value = self._manager.get_current_value()
-        if self._sensor_entry_type == SensorEntries.CURRENT_MIN_VALUE:
+        elif self._sensor_entry_type == SensorEntries.CURRENT_RED:
+            value = self._manager.get_current_channel_value("r")
+        elif self._sensor_entry_type == SensorEntries.CURRENT_GREEN:
+            value = self._manager.get_current_channel_value("g")
+        elif self._sensor_entry_type == SensorEntries.CURRENT_BLUE:
+            value = self._manager.get_current_channel_value("b")
+        elif self._sensor_entry_type == SensorEntries.CURRENT_MIN_VALUE:
             value = self._manager.get_current_lower_boundary()
-        if self._sensor_entry_type == SensorEntries.CURRENT_MAX_VALUE:
+        elif self._sensor_entry_type == SensorEntries.CURRENT_MAX_VALUE:
             value = self._manager.get_current_upper_boundary()
 
         if value is None:
             return None
 
-            # 2. Apply the rounding logic for clean UI display
+        # 2. Apply the rounding logic for clean UI display
         if isinstance(value, (float, int)):
             # Round and cast to int to ensure the final output is a whole number,
             # which removes the trailing decimals in the HA frontend.
             return int(round(value))  # noqa: RUF046
 
-            # Return all other types (strings, etc.) as is
+        # Return all other types (strings, etc.) as is
         return value
 
 

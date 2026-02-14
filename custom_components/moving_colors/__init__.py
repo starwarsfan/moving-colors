@@ -422,19 +422,16 @@ class MovingColorsManager:
             self.stop_update_task()
 
     def get_current_value(self) -> int:
-        """Return the current calculated value."""
-        if self._color_mode == "rgbw":
-            rgbw = [self._current_values[c] for c in "rgbw"]
-            self.logger.warning("Current value requested for rgbw mode: %s. Returning 0 as placeholder.", rgbw)
-            current_value = rgbw[0]
-        elif self._color_mode == "rgb":
-            rgb = [self._current_values[c] for c in "rgb"]
-            self.logger.warning("Current value requested for rgb mode: %s. Returning 0 as placeholder.", rgb)
-            current_value = rgb[0]
-        else:
-            current_value = self._current_values["brightness"]
+        """Return the current calculated value (brightness mode only)."""
+        return self._current_values.get("brightness", 0)
 
-        return current_value
+    def get_color_mode(self) -> str:
+        """Return the detected color mode ('brightness', 'rgb', or 'rgbw')."""
+        return self._color_mode
+
+    def get_current_channel_value(self, channel: str) -> int | None:
+        """Return the current value for a specific color channel (r, g, b, w)."""
+        return self._current_values.get(channel)
 
     def set_current_value_update_callback(self, callback_func: Callable[[int], None]) -> None:
         """Set the callback function for current value updates."""

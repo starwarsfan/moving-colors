@@ -127,6 +127,15 @@
       "sensor_current_value": {
         "name": "Current color value"
       },
+      "sensor_current_red": {
+        "name": "Current Red"
+      },
+      "sensor_current_green": {
+        "name": "Current Green"
+      },
+      "sensor_current_blue": {
+        "name": "Current Blue"
+      },
       "sensor_current_min_value": {
         "name": "Current minimum value"
       },

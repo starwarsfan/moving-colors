@@ -87,7 +87,15 @@ class MCInternalDefaults(Enum):
 class SensorEntries(Enum):
     """Enum for the possible sensor entries."""
 
+    # Brightness mode
     CURRENT_VALUE = "current_value"
+
+    # RGB / RGBW mode
+    CURRENT_RED = "current_red"
+    CURRENT_GREEN = "current_green"
+    CURRENT_BLUE = "current_blue"
+
+    # Common (all modes)
     CURRENT_MIN_VALUE = "current_min_value"
     CURRENT_MAX_VALUE = "current_max_value"
 
