@@ -21,6 +21,20 @@ Go to the [English version](/README.md) version of the documentation.
 * [Einführung](#einführung)
 * [Installation](#installation)
 * [Konfiguration](#konfiguration)
+  * [Instanzname](#instanzname)
+  * [Licht-Entitäten](#licht-entitäten)
+  * [Moving Colors aktivieren](#moving-colors-aktivieren)
+  * [Startwert](#startwert)
+  * [Minimalwert](#minimalwert)
+  * [Maximalwert](#maximalwert)
+  * [Schrittweite](#schrittweite)
+  * [Trigger-Intervall](#trigger-intervall)
+  * [Zufallsgrenzen](#zufallsgrenzen)
+  * [Standardwert](#startwert)
+  * [Standardmodus aktivieren](#standardmodus-aktivieren)
+  * [Farbwert von aktueller Position starten](#farbwert-von-aktueller-position-starten)
+  * [Schritte zum Standardwert](#schritte-zum-standardwert)
+  * [Debug-Modus](#debug-modus)
 
 
 
@@ -66,59 +80,59 @@ Im yaml ist die Listen-Syntax zu verwenden:
 ```
 
 ## Moving Colors aktivieren
-(yaml: `enabled_entity`)
+(yaml: `enabled_manual: true|false` u/o `enabled_entity: <entity>`)
 
-De-/Aktivieren der Moving Colors Instanz via Entität.
+De-/Aktivieren der Moving Colors Instanz. Standardwert: aus
 
 ## Startwert
-(yaml: `start_value_entity`)
+(yaml: `start_value_manual: <Wert>` u/o `start_value_entity: <entity>`)
 
-Bei welchem Farbwert soll die Moving Colors Instanz starten, via Entität.
+Bei welchem Farbwert soll die Moving Colors Instanz starten.
 
 ## Minimalwert
-(yaml: `min_value_entity`)
+(yaml: `min_value_manual: <Wert>` u/o `min_value_entity: <entity>`)
 
-Minimaler Farbwert, bei welchem die Moving Colors Instanz starten soll, via Entität.
+Minimaler Farbwert, bei welchem die Moving Colors Instanz starten soll.
 
 ## Maximalwert
-(yaml: `max_value_entity`)
+(yaml: `max_value_manual: <Wert>` u/o `max_value_entity: <entity>`)
 
-Maximaler Farbwert, bis zu welchem die Moving Colors Instanz gehen soll, via Entität.
+Maximaler Farbwert, bis zu welchem die Moving Colors Instanz gehen soll.
 
 ## Schrittweite
-(yaml: `stepping_entity`)
+(yaml: `stepping_manual: <Wert>` u/o `stepping_entity: <entity>`)
 
-Schrittweite, um welchen der Farbwert pro Durchlauf via Entität erhöht oder verringert werden soll.
+Schrittweite, um welchen der Farbwert pro Durchlauf erhöht oder verringert werden soll.
 
 ## Trigger-Intervall
-(yaml: `trigger_interval_entity`)
+(yaml: `trigger_interval_manual: <Wert>` u/o `trigger_interval_entity: <entity>`)
 
-Intervall in Sekunden via Entität, in welchem die Moving Colors Instanz den Farbwert aktualisieren soll.
+Intervall in Sekunden, in welchem die Moving Colors Instanz den Farbwert aktualisieren soll.
 
 ## Zufallsgrenzen
-(yaml: `random_limits_entity`)
+(yaml: `random_limits_manual: true|false` u/o `random_limits_entity: <entity>`)
 
-Verwendung zufälliger Grenzen via Entität aktivieren.
+Verwendung zufälliger Grenzen aktivieren.
 
 ## Standardwert
-(yaml: `default_value_entity`)
+(yaml: `default_value_manual: <Wert>` u/o `default_value_entity: <entity>`)
 
-Standardwert beim Beenden des Farbwechsels via Entität.
+Standardwert beim Beenden des Farbwechsels.
 
 ## Standardmodus aktivieren
-(yaml: `default_mode_enabled_entity`)
+(yaml: `default_mode_enabled_manual: true|false` u/o `default_mode_enabled_entity: <entity>`)
 
-Verwendung des Standardmodus via Entität aktivieren.
+Verwendung des Standardmodus aktivieren.
 
 ## Farbwert von aktueller Position starten
-(yaml: `start_from_current_position_entity`)
+(yaml: `start_from_current_position_manual: true|false` u/o `start_from_current_position_entity: <entity>`)
 
 Wenn aktiviert, wird der Farbverlauf von der jeweils gerade aktiven Farb-Position gestartet.
 
 ## Schritte zum Standardwert
-(yaml: `steps_to_default_entity`)
+(yaml: `steps_to_default_manual: <Wert>` u/o `steps_to_default_entity: <entity>`)
 
-Schritte bis zum Standardwert via Entität, wenn der Standardmodus aktiviert ist und der Farbwechsel deaktiviert wird.
+Schritte bis zum Standardwert, wenn der Standardmodus aktiviert ist und der Farbwechsel deaktiviert wird.
 
 ## Debug-Modus
 (yaml: `debug_enabled`)

@@ -21,6 +21,20 @@ Gehe zur [deutschen Version](/README.de.md) der Dokumentation.
 * [What it does](#what-it-does)
 * [Installation](#installation)
 * [Configuration](#configuration)
+  * [Instance name](#instance-name)
+  * [Light entities](#light-entities)
+  * [Enable Moving Colors](#enable-moving-colors)
+  * [Start value](#start-value)
+  * [Minimum value](#minimum-value)
+  * [Maximum value](#maximum-value)
+  * [Step value](#step-value)
+  * [Trigger intervall](#trigger-intervall)
+  * [Random limits](#random-limits)
+  * [Default value](#default-value)
+  * [Activate default mode](#activate-default-mode)
+  * [Start color value from current position](#start-color-value-from-current-position)
+  * [Steps to default value](#steps-to-default-value)
+  * [Debug mode](#debug-mode)
 
 
 
@@ -66,59 +80,59 @@ Within yaml you need to use the list syntax:
 ```
 
 ## Enable Moving Colors
-(yaml: `enabled_entity`)
+(yaml: `enabled_manual: true|false` u/o `enabled_entity: <entity>`)
 
-Enable Moving Colors for this instance based on an entity state.
+Enable Moving Colors for this instance. Default: off
 
 ## Start value
-(yaml: `start_value_entity`)
+(yaml: `start_value_manual: <Wert>` u/o `start_value_entity: <entity>`)
 
-Start value for the color transition based on an entity state.
+Start value for the color transition.
 
 ## Minimum value
-(yaml: `min_value_entity`)
+(yaml: `min_value_manual: <Wert>` u/o `min_value_entity: <entity>`)
 
-Minimum value for the color transition based on an entity state.
+Minimum value for the color transition.
 
 ## Maximum value
-(yaml: `max_value_entity`)
+(yaml: `max_value_manual: <Wert>` u/o `max_value_entity: <entity>`)
 
-Maximum value for the color transition based on an entity state.
+Maximum value for the color transition.
 
 ## Step value
-(yaml: `stepping_entity`)
+(yaml: `stepping_manual: <Wert>` u/o `stepping_entity: <entity>`)
 
-Step value for the color transition based on an entity state.
+Step value for the color transition.
 
 ## Trigger intervall
-(yaml: `trigger_interval_entity`)
+(yaml: `trigger_interval_manual: <Wert>` u/o `trigger_interval_entity: <entity>`)
 
-Trigger interval from an entity state in seconds for the color transition.
+Trigger interval in seconds for the color transition.
 
 ## Random limits
-(yaml: `random_limits_entity`)
+(yaml: `random_limits_manual: true|false` u/o `random_limits_entity: <entity>`)
 
-Random limits for the color transition based on an entity state.
+Random limits for the color transition.
 
 ## Default value
-(yaml: `default_value_entity`)
+(yaml: `default_value_manual: <Wert>` u/o `default_value_entity: <entity>`)
 
-Default value after disabled color transition based on an entity state.
+Default value after disabled color transition.
 
 ## Activate default mode
-(yaml: `default_mode_enabled_entity`)
+(yaml: `default_mode_enabled_manual: true|false` u/o `default_mode_enabled_entity: <entity>`)
 
-Enable default mode for the color transition based on an entity state.
+Enable default mode for the color transition.
 
 ## Start color value from current position
-(yaml: `start_from_current_position_entity`)
+(yaml: `start_from_current_position_manual: true|false` u/o `start_from_current_position_entity: <entity>`)
 
 Start color value from current position instead of the configured start value.
 
 ## Steps to default value
-(yaml: `steps_to_default_entity`)
+(yaml: `steps_to_default_manual: <Wert>` u/o `steps_to_default_entity: <entity>`)
 
-Steps to reach the default value after disabling the color transition based on an entity state.
+Steps to reach the default value after disabling the color transition.
 
 ## Debug mode
 (yaml: `debug_enabled`)
