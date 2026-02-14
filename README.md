@@ -30,6 +30,8 @@ Gehe zur [deutschen Version](/README.de.md) der Dokumentation.
 
 The integration can be configured with one or more light entities, and it will randomly change the colors of those lights at a specified interval and step size. This change is not a hard switch, but rather a gradual transition to the new color, creating a smooth and visually appealing effect. As soon as the minimum or maximum color is reached, the integration will change the transition direction, ensuring that the colors keep changing without abrupt stops. So the transition will move like a pendulum in between the minimum and maximum colors. Additionally, it is possible to let the integration choose random minimum and maximum colors for each transition, adding even more variety to the lighting effects.
 
+The integration can handle simple dimmable light entities, RGB light entities as well as RGBW light entities. If there are multiple entities configured, all of them should be from the same type. The internal configuration will use the values and features from the first configured entity. All others will simply be driven with the same values. If using RGBW entities, the white part will be set to zero all the time. 
+
 
 
 # Installation
@@ -39,6 +41,92 @@ The integration can be configured with one or more light entities, and it will r
 
 
 # Configuration
+
+## Instance name
+(yaml: `name`)
+
+A descriptive and unique name for this Moving Colors instance. A sanitized version of this name will be used to mark corresponding log entries of this instance within the Home Assistant main log file as well as prefix for the created entities.
+
+Example:
+1. The instance is named "Dining room LED strip"
+2. The sanitized name will be "dining_room_led_strip"
+3. Log entries start with `[moving_colors.dining_room_led_strip]`
+4. Entities will be named e.g. like `sensor.dining_room_led_strip_current_blue` for the blue part of an RGB entity
+
+## Light entities
+(yaml: `target_light_entity`)
+
+Light entity, which should be handled by this Moving Colors instance. All of then should be from the same type within one instance of **Moving Colors**.
+
+Within yaml you need to use the list syntax:
+```yaml
+    target_light_entity:
+      - light.dining_room_led_strip
+      - light.living_room_led_strip
+```
+
+## Enable Moving Colors
+(yaml: `enabled_entity`)
+
+Enable Moving Colors for this instance based on an entity state.
+
+## Start value
+(yaml: `start_value_entity`)
+
+Start value for the color transition based on an entity state.
+
+## Minimum value
+(yaml: `min_value_entity`)
+
+Minimum value for the color transition based on an entity state.
+
+## Maximum value
+(yaml: `max_value_entity`)
+
+Maximum value for the color transition based on an entity state.
+
+## Step value
+(yaml: `stepping_entity`)
+
+Step value for the color transition based on an entity state.
+
+## Trigger intervall
+(yaml: `trigger_interval_entity`)
+
+Trigger interval from an entity state in seconds for the color transition.
+
+## Random limits
+(yaml: `random_limits_entity`)
+
+Random limits for the color transition based on an entity state.
+
+## Default value
+(yaml: `default_value_entity`)
+
+Default value after disabled color transition based on an entity state.
+
+## Activate default mode
+(yaml: `default_mode_enabled_entity`)
+
+Enable default mode for the color transition based on an entity state.
+
+## Start color value from current position
+(yaml: `start_from_current_position_entity`)
+
+Start color value from current position instead of the configured start value.
+
+## Steps to default value
+(yaml: `steps_to_default_entity`)
+
+Steps to reach the default value after disabling the color transition based on an entity state.
+
+## Debug mode
+(yaml: `debug_enabled`)
+
+Activate debug logs for this instance
+
+
+
 
 [hacs]: https://hacs.xyz
 [hacsbadge]: https://img.shields.io/badge/HACS-Default-blue?style=for-the-badge&logo=homeassistantcommunitystore&logoColor=ccc
