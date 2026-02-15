@@ -7,6 +7,7 @@ from datetime import timedelta
 from typing import Any
 
 import homeassistant.util.dt as dt_util
+import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     EVENT_HOMEASSISTANT_STARTED,
@@ -14,11 +15,13 @@ from homeassistant.const import (
     Platform,
 )
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_registry
 from homeassistant.helpers.event import async_track_state_change, async_track_time_interval
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.util import slugify
 
+from .config_flow import YAML_CONFIG_SCHEMA
 from .const import (
     DEBUG_ENABLED,
     DOMAIN,
@@ -38,6 +41,13 @@ _LOGGER = logging.getLogger(__name__)
 PLATFORMS: list[Platform] = [Platform.NUMBER, Platform.SENSOR, Platform.SWITCH]
 
 CURRENT_SCHEMA_VERSION = VERSION
+
+# CONFIG_SCHEMA uses YAML_CONFIG_SCHEMA from config_flow.py - no duplication.
+# config_flow.py only imports from const.py, so there is no circular dependency.
+CONFIG_SCHEMA = vol.Schema(
+    {DOMAIN: vol.All(cv.ensure_list, [YAML_CONFIG_SCHEMA])},
+    extra=vol.ALLOW_EXTRA,
+)
 
 
 # Setup entry point, which is called at every start of Home Assistant.

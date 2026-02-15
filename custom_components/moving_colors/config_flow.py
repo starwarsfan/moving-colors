@@ -8,6 +8,7 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import selector
 from voluptuous import Any
 
@@ -73,6 +74,29 @@ def get_cfg_options() -> vol.Schema:
 
 # Wrapper for minimal configuration, which is used to show initial ConfigFlow
 CFG_MINIMAL = vol.Schema(get_cfg_minimal_required().schema | get_cfg_options().schema)
+
+
+# YAML configuration schema - exported for use in __init__.py CONFIG_SCHEMA.
+# Defined here to avoid duplication. No circular import risk since config_flow.py
+# only imports from const.py, never from __init__.py.
+YAML_CONFIG_SCHEMA = vol.Schema(
+    {
+        vol.Required(MC_CONF_NAME): cv.string,
+        vol.Required(TARGET_LIGHT_ENTITY_ID): vol.All(cv.ensure_list, [cv.entity_id]),
+        vol.Optional(MCConfig.ENABLED_ENTITY.value): cv.entity_id,
+        vol.Optional(MCConfig.START_VALUE_ENTITY.value): cv.entity_id,
+        vol.Optional(MCConfig.MIN_VALUE_ENTITY.value): cv.entity_id,
+        vol.Optional(MCConfig.MAX_VALUE_ENTITY.value): cv.entity_id,
+        vol.Optional(MCConfig.STEPPING_ENTITY.value): cv.entity_id,
+        vol.Optional(MCConfig.TRIGGER_INTERVAL_ENTITY.value): cv.entity_id,
+        vol.Optional(MCConfig.RANDOM_LIMITS_ENTITY.value): cv.entity_id,
+        vol.Optional(MCConfig.DEFAULT_VALUE_ENTITY.value): cv.entity_id,
+        vol.Optional(MCConfig.DEFAULT_MODE_ENABLED_ENTITY.value): cv.entity_id,
+        vol.Optional(MCConfig.START_FROM_CURRENT_POSITION_ENTITY.value): cv.entity_id,
+        vol.Optional(MCConfig.STEPS_TO_DEFAULT_ENTITY.value): cv.entity_id,
+        vol.Optional(DEBUG_ENABLED, default=False): cv.boolean,
+    }
+)
 
 
 class MovingColorsConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
