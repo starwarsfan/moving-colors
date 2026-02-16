@@ -30,9 +30,9 @@ Go to the [English version](/README.md) version of the documentation.
   * [Schrittweite](#schrittweite)
   * [Trigger-Intervall](#trigger-intervall)
   * [Zufallsgrenzen](#zufallsgrenzen)
-  * [Standardwert](#startwert)
-  * [Standardmodus aktivieren](#standardmodus-aktivieren)
   * [Farbwert von aktueller Position starten](#farbwert-von-aktueller-position-starten)
+  * [Standardmodus aktivieren](#standardmodus-aktivieren)
+  * [Standardwert](#startwert)
   * [Schritte zum Standardwert](#schritte-zum-standardwert)
   * [Debug-Modus](#debug-modus)
 * [Konfiguration via yaml](#konfiguration-via-yaml)
@@ -61,7 +61,7 @@ Es können sowohl einfache, dimmbare Light-Entitäten, RGB-Light-Entitäten sowi
 ## Instanzname
 (yaml: `name`)
 
-Eindeutiger Name dieser Moving Colors Instanz. Eine bereinigte Version dieses Namens wird zur Kennzeichnung der Log-Einträge in der Home Assistant Logdatei sowie als Präfix für die von der Integration erstellten Status- und Options-Entitäten verwendet.
+Eindeutiger Name dieser **Moving Colors** Instanz. Eine bereinigte Version dieses Namens wird zur Kennzeichnung der Log-Einträge in der Home Assistant Logdatei sowie als Präfix für die von der Integration erstellten Status- und Options-Entitäten verwendet.
 
 Beispiel:
 1. Die Instanz wird "LED-Band Wohnraum" genannt
@@ -72,7 +72,7 @@ Beispiel:
 ## Licht-Entitäten
 (yaml: `target_light_entity`)
 
-Eine oder mehrere Licht-Entitäten, welche mit dieser Moving Colors Instanz gesteuert werden sollen. Diese müssen innerhalb einer **Moving Colors** Instanz vom gleichen Typ sein.
+Eine oder mehrere Licht-Entitäten, welche mit dieser **Moving Colors** Instanz gesteuert werden sollen. Diese müssen innerhalb einer **Moving Colors** Instanz vom gleichen Typ sein.
 
 Im yaml ist die Listen-Syntax zu verwenden:
 ```yaml
@@ -84,52 +84,66 @@ Im yaml ist die Listen-Syntax zu verwenden:
 ## Moving Colors aktivieren
 (yaml: `enabled_manual: true|false` u/o `enabled_entity: <entity>`)
 
-De-/Aktivieren der Moving Colors Instanz. Standardwert: aus
+De-/Aktivieren der **Moving Colors** Instanz. Standardwert: aus
+
+Sobald diese Option auf "on" gesetzt wird, startet die **Moving Colors** Instanz mit dem Farbverlauf.
 
 ## Startwert
 (yaml: `start_value_manual: <Wert>` u/o `start_value_entity: <entity>`)
 
-Bei welchem Farbwert soll die Moving Colors Instanz starten.
+Bei welchem (Farb-)wert soll die **Moving Colors** Instanz starten.
 
 ## Minimalwert
 (yaml: `min_value_manual: <Wert>` u/o `min_value_entity: <entity>`)
 
-Minimaler Farbwert, bei welchem die Moving Colors Instanz starten soll.
+Minimaler (Farb-)wert, bis zu welchem die **Moving Colors** Instanz herunter dimmen soll.
 
 ## Maximalwert
 (yaml: `max_value_manual: <Wert>` u/o `max_value_entity: <entity>`)
 
-Maximaler Farbwert, bis zu welchem die Moving Colors Instanz gehen soll.
+Maximaler (Farb-)wert, bis zu welchem die **Moving Colors** Instanz herauf dimmen soll.
 
 ## Schrittweite
 (yaml: `stepping_manual: <Wert>` u/o `stepping_entity: <entity>`)
 
 Schrittweite, um welchen der Farbwert pro Durchlauf erhöht oder verringert werden soll.
 
+Die Schrittweite gibt an, um welchen Betrag der aktuelle Dimm-Wert je nach Dimm-Richtung erhöht oder vermindert werden soll. Bei kleinen Werten ist die Veränderung der Dimmung fast nicht wahrnehmbar, bei größeren Werten erscheint sie mitunter ruckartig. Das ist aber auch von der verwendeten Leuchte resp. deren Trägheit beim Ändern der Dimmung abhängig und muss wie alle anderen Werte auch, an die örtlichen Gegebenheiten angepasst werden.
+
 ## Trigger-Intervall
 (yaml: `trigger_interval_manual: <Wert>` u/o `trigger_interval_entity: <entity>`)
 
-Intervall in Sekunden, in welchem die Moving Colors Instanz den Farbwert aktualisieren soll.
+Intervall in Sekunden, in welchem die **Moving Colors** Instanz den Farbwert aktualisieren soll.
+
+Für eine langsame und sanfte Dimmung sollte die Schrittweite nicht zu groß und das Trigger-Intervall nicht zu klein gewählt werden. Es ist zu beachten, dass jeder Durchlauf des Bausteines bei KNX-Leuchten die entsprechenden Dimm-Befehle auf den Bus sendet, was je nach Anzahl der verwendeten Instanzen und dem verwendeten Intervall eine nicht unerhebliche Buslast erzeugen kann!
 
 ## Zufallsgrenzen
 (yaml: `random_limits_manual: true|false` u/o `random_limits_entity: <entity>`)
 
-Verwendung zufälliger Grenzen aktivieren.
+Verwendung zufälliger Grenzen de-/aktivieren.
+
+Per Default werden zufällige Grenzwerte verwendet. Das bedeutet, dass die Grenzwerte der Richtungsumkehr zufällig gewählt werden. Bei Erreichen eines Grenzwertes wird immer der jeweils gegenüberliegende Grenzwert neu als Zufallswert ermittelt. Der Baustein läuft also beim ersten Durchlauf bis zum Max-Wert. Bei Erreichen dieses Wertes wird für den Min-Wert ein zufälliger Wert aus dem Bereich Min-Wert bis Max-Wert ermittelt und die Dimm-Richtung umgekehrt. Erreicht der Baustein den errechneten Min-Wert, wird aus dem Bereich des aktuellen Min-Wertes bis zum Max-Wert ein zufälliger neuer Max-Wert ermittelt und die Dimm-Richtung erneut gewechselt. Somit ergeben sich bei jedem Durchlauf andere Grenzwerte und die Dimmkurve ist bei jedem Durchlauf anders.
+
+Wird das Zufallsverhalten deaktiviert, pendelt die Dimmung immer zwischen den Min-/Max-Werten.
+
+## Farbwert von aktueller Position starten
+(yaml: `start_from_current_position_manual: true|false` u/o `start_from_current_position_entity: <entity>`)
+
+Wenn aktiviert, wird der Farbverlauf von der jeweils gerade aktiven Farb-Position gestartet.
+
+## Standardmodus aktivieren
+(yaml: `default_mode_enabled_manual: true|false` u/o `default_mode_enabled_entity: <entity>`)
+
+Verwendung des Standardmodus aktivieren. Default: aus
+
+Wenn die Instanz deaktiviert wird und diese Option ist aktiv, wird der [Standarwert](#standardwert) mit den unter [Schritte zum Standardwert](#schritte-zum-standardwert) angegebenen Schritten angefahren. Anderenfalls bleibt die Farbanimation einfach an der letzten Position stehen.
 
 ## Standardwert
 (yaml: `default_value_manual: <Wert>` u/o `default_value_entity: <entity>`)
 
 Standardwert beim Beenden des Farbwechsels.
 
-## Standardmodus aktivieren
-(yaml: `default_mode_enabled_manual: true|false` u/o `default_mode_enabled_entity: <entity>`)
-
-Verwendung des Standardmodus aktivieren.
-
-## Farbwert von aktueller Position starten
-(yaml: `start_from_current_position_manual: true|false` u/o `start_from_current_position_entity: <entity>`)
-
-Wenn aktiviert, wird der Farbverlauf von der jeweils gerade aktiven Farb-Position gestartet.
+Der hier konfigurierte Wert wird mit den unter [Schritte zum Standardwert](#schritte-zum-standardwert) angegebenen Schritten angefahren, wenn die Instanz deaktiviert wird und der [Standardmodus](#standardmodus-aktivieren) aktiviert ist.
 
 ## Schritte zum Standardwert
 (yaml: `steps_to_default_manual: <Wert>` u/o `steps_to_default_entity: <entity>`)
