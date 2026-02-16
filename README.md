@@ -165,7 +165,7 @@ moving_colors:
     #debug_enabled: false
     #enabled_manual: false
     #enabled_entity:
-    #start_value_manual: 0
+    #start_value_manual: 125
     #start_value_entity:
     #min_value_manual: 0
     #min_value_entity:

@@ -79,7 +79,7 @@ class MCInternalDefaults(Enum):
     MIN_VALUE = 0
     MAX_VALUE = 255
     STEPPING = 3
-    TRIGGER_INTERVAL = 2  # in seconds
+    TRIGGER_INTERVAL = 3  # in seconds
     DEFAULT_VALUE = 125  # noqa: PIE796
     STEPS_TO_DEFAULT = 5
 
