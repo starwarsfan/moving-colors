@@ -114,38 +114,44 @@ Trigger interval in seconds for the color transition.
 ## Random limits
 (yaml: `random_limits_manual: true|false` u/o `random_limits_entity: <entity>`)
 
-Random limits for the color transition.
+Enable or disable the use of random limits.
+
+By default, random limits are used. This means that the limits for changing direction are chosen randomly. When a limit is reached, the opposite limit is randomly determined within the range between the minimum and maximum value. The integration will, for the first run, go up to the max value. When this value is reached, a new random min value is chosen between the min and max, and the direction is reversed. When the min value is reached, a new random max value is chosen between the current min and max, and the direction is reversed again. This results in different limits and a unique dimming curve for each run.
+
+If random behavior is disabled, the dimming will always oscillate between the min and max values.
 
 ## Start color value from current position
 (yaml: `start_from_current_position_manual: true|false` u/o `start_from_current_position_entity: <entity>`)
 
-Start color value from current position instead of the configured start value.
+If enabled, the color transition will start from the currently active color position.
 
 ## Activate default mode
 (yaml: `default_mode_enabled_manual: true|false` u/o `default_mode_enabled_entity: <entity>`)
 
-Enable default mode for the color transition.
+Enable the use of default mode. Default: off
+
+If the instance is disabled and this option is active, the [default value](#default-value) will be reached using the number of steps specified in [steps to default value](#steps-to-default-value). Otherwise, the color animation will simply stop at the last position.
 
 ## Default value
 (yaml: `default_value_manual: <Wert>` u/o `default_value_entity: <entity>`)
 
-Default value after disabled color transition.
+Default value when ending the color transition.
+
+The value configured here will be reached using the number of steps specified in [steps to default value](#steps-to-default-value) when the instance is disabled and [default mode](#activate-default-mode) is enabled.
 
 ## Steps to default value
 (yaml: `steps_to_default_manual: <Wert>` u/o `steps_to_default_entity: <entity>`)
 
-Steps to reach the default value after disabling the color transition.
+Number of steps to reach the default value when default mode is enabled and the color transition is disabled.
 
 ## Debug mode
 (yaml: `debug_enabled`)
 
-Activate debug logs for this instance
-
-
+Enable debug logs for this instance.
 
 # Configuration by YAML
 
-It is possible to configure **Moving Colors** instances using YAML. To do so, you need to add the corresponding configuration to `configuration.yaml` and restart Home Assistant. After that, the YAML configuration be loaded and **Moving Colors** creates the corresponding instances. These instances could be modified afterward using Home Assistant ConfigFlow. Modifications right on the YAML content is not supportet. To reload the YAML configuration, you need to remove the existing **Moving Colors** instances and restart Home Assistant.
+It is possible to configure **Moving Colors** instances using YAML. To do so, you need to add the corresponding configuration to `configuration.yaml` and restart Home Assistant. After that, the YAML configuration will be loaded and **Moving Colors** will create the corresponding instances. These instances can then be modified using Home Assistant ConfigFlow. Changes made directly to the YAML configuration will not be applied, as the entire configuration is managed via Home Assistant ConfigFlow. To reload the YAML configuration, you need to remove the existing **Moving Colors** instances and restart Home Assistant.
 
 ## Example YAML configuration
 
