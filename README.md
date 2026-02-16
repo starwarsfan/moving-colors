@@ -30,9 +30,9 @@ Gehe zur [deutschen Version](/README.de.md) der Dokumentation.
   * [Step value](#step-value)
   * [Trigger intervall](#trigger-intervall)
   * [Random limits](#random-limits)
-  * [Default value](#default-value)
-  * [Activate default mode](#activate-default-mode)
   * [Start color value from current position](#start-color-value-from-current-position)
+  * [Activate default mode](#activate-default-mode)
+  * [Default value](#default-value)
   * [Steps to default value](#steps-to-default-value)
   * [Debug mode](#debug-mode)
 * [Configuration by YAML](#configuration-by-yaml)
@@ -116,20 +116,20 @@ Trigger interval in seconds for the color transition.
 
 Random limits for the color transition.
 
-## Default value
-(yaml: `default_value_manual: <Wert>` u/o `default_value_entity: <entity>`)
+## Start color value from current position
+(yaml: `start_from_current_position_manual: true|false` u/o `start_from_current_position_entity: <entity>`)
 
-Default value after disabled color transition.
+Start color value from current position instead of the configured start value.
 
 ## Activate default mode
 (yaml: `default_mode_enabled_manual: true|false` u/o `default_mode_enabled_entity: <entity>`)
 
 Enable default mode for the color transition.
 
-## Start color value from current position
-(yaml: `start_from_current_position_manual: true|false` u/o `start_from_current_position_entity: <entity>`)
+## Default value
+(yaml: `default_value_manual: <Wert>` u/o `default_value_entity: <entity>`)
 
-Start color value from current position instead of the configured start value.
+Default value after disabled color transition.
 
 ## Steps to default value
 (yaml: `steps_to_default_manual: <Wert>` u/o `steps_to_default_entity: <entity>`)
