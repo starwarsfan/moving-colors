@@ -1,5 +1,10 @@
 # Changes
 
+## 0.2.0
+### Fixes
+* Internal error handling updated
+* Improved documentation
+
 ## 0.1.0
 * Initial release
 * Automated release creation using GitHub Actions
