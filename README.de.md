@@ -34,6 +34,7 @@ Go to the [English version](/README.md) version of the documentation.
   * [Standardmodus aktivieren](#standardmodus-aktivieren)
   * [Standardwert](#startwert)
   * [Schritte zum Standardwert](#schritte-zum-standardwert)
+  * [Start-Helligkeit](#start-helligkeit)
   * [Debug-Modus](#debug-modus)
 * [Konfiguration via yaml](#konfiguration-via-yaml)
   * [yaml Beispielkonfiguration](#yaml-beispielkonfiguration)
@@ -150,6 +151,13 @@ Der hier konfigurierte Wert wird mit den unter [Schritte zum Standardwert](#schr
 
 Schritte bis zum Standardwert, wenn der Standardmodus aktiviert ist und der Farbwechsel deaktiviert wird.
 
+## Start-Helligkeit
+(yaml: `startup_brightness_manual: <Wert>` u/o `startup_brightness_entity: <entity>`)
+
+Nur relevant für RGB- und RGBW-Licht-Entitäten (bei einfach dimmbaren Lichtern ist die Helligkeit selbst der animierte Wert, siehe [Startwert](#startwert) und folgende). Helligkeit in Prozent, die einmalig gesetzt wird, wenn das Licht aus dem ausgeschalteten Zustand heraus eingeschaltet wird - also wenn die Instanz aktiviert wird, während das Licht gerade aus ist, oder wenn Home Assistant neu startet und eine zuvor laufende Instanz fortsetzt, während das Licht aus ist. Standardwert: 100%.
+
+Solange das Licht bereits an ist, fasst **Moving Colors** dessen Helligkeit nicht an - manuell angepasste Helligkeit (UI, physischer Dimmer, Automation) während eines laufenden Farbwechsels bleibt somit erhalten, statt bei jedem Übergangsschritt zurückgesetzt zu werden.
+
 ## Debug-Modus
 (yaml: `debug_enabled`)
 
@@ -191,6 +199,8 @@ moving_colors:
     #default_value_entity:
     #steps_to_default_manual: 10
     #steps_to_default_entity:
+    #startup_brightness_manual: 100
+    #startup_brightness_entity:
 ```
 
 

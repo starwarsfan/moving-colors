@@ -34,6 +34,7 @@ Gehe zur [deutschen Version](/README.de.md) der Dokumentation.
   * [Activate default mode](#activate-default-mode)
   * [Default value](#default-value)
   * [Steps to default value](#steps-to-default-value)
+  * [Startup brightness](#startup-brightness)
   * [Debug mode](#debug-mode)
 * [Configuration by YAML](#configuration-by-yaml)
   * [Example YAML configuration](#example-yaml-configuration)
@@ -144,6 +145,13 @@ The value configured here will be reached using the number of steps specified in
 
 Number of steps to reach the default value when default mode is enabled and the color transition is disabled.
 
+## Startup brightness
+(yaml: `startup_brightness_manual: <Wert>` u/o `startup_brightness_entity: <entity>`)
+
+Only relevant for RGB and RGBW light entities (for plain dimmable lights, brightness itself is the value being animated, see [Start value](#start-value) and following). Brightness percentage to apply once when the light turns on from off, i.e. when the instance is enabled while the light is currently off, or Home Assistant restarts and resumes a previously running instance while the light is off. Default: 100%.
+
+While the light is already on, **Moving Colors** never touches its brightness - so brightness adjusted manually (UI, physical dimmer, automation) during an active color transition is preserved instead of being reset on every transition step.
+
 ## Debug mode
 (yaml: `debug_enabled`)
 
@@ -183,6 +191,8 @@ moving_colors:
     #default_value_entity:
     #steps_to_default_manual: 10
     #steps_to_default_entity:
+    #startup_brightness_manual: 100
+    #startup_brightness_entity:
 ```
 
 

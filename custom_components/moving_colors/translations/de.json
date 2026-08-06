@@ -17,6 +17,7 @@
           "default_mode_enabled_entity": "Standardmodus aktivieren",
           "start_from_current_position_entity": "Farbwert von aktueller Position starten",
           "steps_to_default_entity": "Schritte zum Standardwert",
+          "startup_brightness_entity": "Start-Helligkeit",
           "debug_enabled": "Debug-Modus"
         },
         "data_description": {
@@ -33,6 +34,7 @@
           "default_mode_enabled_entity": "Verwendung des Standardmodus via Entität aktivieren.",
           "start_from_current_position_entity": "Wenn aktiviert, wird der Farbverlauf von der jeweils gerade aktiven Farb-Position gestartet.",
           "steps_to_default_entity": "Schritte bis zum Standardwert via Entität, wenn der Standardmodus aktiviert ist und der Farbwechsel deaktiviert wird.",
+          "startup_brightness_entity": "Helligkeit in Prozent via Entität, welche einmalig beim Einschalten aus dem ausgeschalteten Zustand heraus gesetzt wird. Wird ignoriert, solange das Licht bereits an ist.",
           "debug_enabled": "Debug-Logs für diese Instanz aktivieren."
         }
       },
@@ -67,6 +69,7 @@
           "default_mode_enabled_entity": "Standardmodus aktivieren",
           "start_from_current_position_entity": "Farbwert von aktueller Position starten",
           "steps_to_default_entity": "Schritte zum Standardwert",
+          "startup_brightness_entity": "Start-Helligkeit",
           "debug_enabled": "Debug-Modus"
         },
         "data_description": {
@@ -82,6 +85,7 @@
           "default_mode_enabled_entity": "Verwendung des Standardmodus via Entität aktivieren.",
           "start_from_current_position_entity": "Wenn aktiviert, wird der Farbverlauf von der jeweils gerade aktiven Farb-Position gestartet.",
           "steps_to_default_entity": "Schritte bis zum Standardwert via Entität, wenn der Standardmodus aktiviert ist und der Farbwechsel deaktiviert wird.",
+          "startup_brightness_entity": "Helligkeit in Prozent via Entität, welche einmalig beim Einschalten aus dem ausgeschalteten Zustand heraus gesetzt wird. Wird ignoriert, solange das Licht bereits an ist.",
           "debug_enabled": "Debug-Logs für diese Instanz aktivieren."
         }
       },
@@ -121,6 +125,9 @@
       },
       "steps_to_default_manual": {
         "name": "Schritte zum Standardwert"
+      },
+      "startup_brightness_manual": {
+        "name": "Start-Helligkeit"
       }
     },
     "sensor": {
@@ -174,6 +181,9 @@
       },
       "steps_to_default_entity": {
         "name": "Schritte bis Standardwert"
+      },
+      "startup_brightness_entity": {
+        "name": "Start-Helligkeit"
       }
     },
     "switch": {

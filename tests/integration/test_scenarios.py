@@ -107,6 +107,30 @@ async def mc_entry_rgb(hass: HomeAssistant) -> MockConfigEntry:
 
 
 @pytest.fixture
+async def mc_entry_rgb_off(hass: HomeAssistant) -> MockConfigEntry:
+    """Setup a Moving Colors instance with an RGB light that starts off."""
+    hass.states.async_set(
+        "light.rgb_light_off",
+        "off",
+        {"supported_color_modes": ["rgb"]},
+    )
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={MC_CONF_NAME: INSTANCE_NAME},
+        options={TARGET_LIGHT_ENTITY_ID: ["light.rgb_light_off"]},
+        entry_id="mc_test_rgb_off_entry",
+        title=INSTANCE_NAME,
+        version=1,
+    )
+    entry.add_to_hass(hass)
+    hass.bus.async_fire(EVENT_HOMEASSISTANT_STARTED)
+    await hass.async_block_till_done()
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    return entry
+
+
+@pytest.fixture
 async def mc_entry_rgbw(hass: HomeAssistant) -> MockConfigEntry:
     """Setup a Moving Colors instance with an RGBW light."""
     hass.states.async_set(
@@ -552,3 +576,58 @@ async def test_rgbw_rgb_channels_change_while_w_stays_zero(hass: HomeAssistant, 
     current_rgb = {c: manager._current_values[c] for c in ("r", "g", "b")}
     assert current_rgb != initial_rgb, "RGB channels should change in RGBW mode"
     assert manager._current_values["w"] == 0
+
+
+# ============================================================================
+# Scenario 6: Startup brightness is applied once, not on every tick (#77)
+# ============================================================================
+
+
+async def test_startup_brightness_applied_once_when_light_off(
+    hass: HomeAssistant, mc_entry_rgb_off: MockConfigEntry, mock_light_services, time_travel
+) -> None:
+    """Scenario: Light was off before the loop started.
+
+    Given: An RGB light that is off
+    When:  Moving Colors is enabled and runs a second tick
+    Then:  Only the very first light.turn_on call carries brightness_pct (default 100%);
+           subsequent calls only carry color, leaving brightness untouched
+    """
+    await enable_mc(hass)
+    await time_travel(seconds=INTERVAL + 1)
+
+    assert len(mock_light_services) >= 2
+    assert mock_light_services[0].data.get("brightness_pct") == MCInternalDefaults.STARTUP_BRIGHTNESS.value
+    assert all("brightness_pct" not in call.data for call in mock_light_services[1:]), (
+        "brightness_pct must only be sent once, on the very first light.turn_on call"
+    )
+
+
+async def test_startup_brightness_not_applied_when_light_already_on(
+    hass: HomeAssistant, mc_entry_rgb: MockConfigEntry, mock_light_services, time_travel
+) -> None:
+    """Scenario: Light was already on before the loop started.
+
+    Given: An RGB light that is on
+    When:  Moving Colors is enabled and runs a tick
+    Then:  No light.turn_on call ever carries brightness_pct - existing/manual
+           brightness is never touched
+    """
+    await enable_mc(hass)
+    await time_travel(seconds=INTERVAL + 1)
+
+    assert len(mock_light_services) >= 2
+    assert all("brightness_pct" not in call.data for call in mock_light_services)
+
+
+async def test_startup_brightness_respects_configured_value(hass: HomeAssistant, mc_entry_rgb_off: MockConfigEntry, mock_light_services) -> None:
+    """Scenario: A custom startup brightness is configured.
+
+    Given: An RGB light that is off, startup brightness set to 40%
+    When:  Moving Colors is enabled
+    Then:  The first light.turn_on call uses brightness_pct=40
+    """
+    await set_number(hass, "number.mc_test_startup_brightness", 40)
+    await enable_mc(hass)
+
+    assert mock_light_services[0].data.get("brightness_pct") == 40

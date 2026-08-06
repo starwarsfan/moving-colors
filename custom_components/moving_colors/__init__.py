@@ -369,6 +369,10 @@ class MovingColorsManager:
         # Flag: True after the loop has run at least once (used for resume logic)
         self._loop_has_run: bool = False
 
+        # Flag: True once the startup brightness has been applied for the current
+        # loop run (reset each time the update task (re)starts, see async_start_update_task)
+        self._startup_brightness_applied: bool = False
+
         self.logger.debug("[%s] Manager initialized for target: %s", self.name, self._target_light_entity_id)
 
     async def async_start(self) -> None:
@@ -457,7 +461,11 @@ class MovingColorsManager:
             # Already running
             return
 
-        # 2. Check if we have previous loop state to resume from.
+        # 2. Reset the startup-brightness flag: each (re)start of the update task
+        # should be allowed to apply it once, if the light is currently off.
+        self._startup_brightness_applied = False
+
+        # 3. Check if we have previous loop state to resume from.
         # _loop_has_run is set to True after the first successful update cycle,
         # so on restart we can pick up exactly where we left off.
         if self._loop_has_run:
@@ -744,6 +752,16 @@ class MovingColorsManager:
         # val_str = ", ".join([f"{k}: {v:.1f}" if isinstance(v, float) else f"{k}: {v}" for k, v in new_values.items()])
         # self.logger.debug("Values: %s", val_str)
 
+        # Apply the configured startup brightness only once per loop run, and only if
+        # the light was off before this tick - otherwise leave brightness untouched so
+        # manual brightness adjustments during an active loop aren't overridden (#77).
+        apply_startup_brightness = (
+            not self._startup_brightness_applied
+            and self._color_mode in ("rgb", "rgbw")
+            and self._initial_state
+            and self._initial_state.get("state") == "off"
+        )
+
         # Prepare service data based on color mode
         for target_entity in self._target_light_entity_id:
             if target_entity:
@@ -769,16 +787,23 @@ class MovingColorsManager:
 
                 if self._color_mode == "rgbw":
                     rgbw = [self._current_values[c] for c in "rgbw"]
-                    service_data = {"entity_id": target_entity, "brightness_pct": 100, "rgbw_color": rgbw}
+                    service_data = {"entity_id": target_entity, "rgbw_color": rgbw}
                 elif self._color_mode == "rgb":
                     rgb = [self._current_values[c] for c in "rgb"]
-                    service_data = {"entity_id": target_entity, "brightness_pct": 100, "rgb_color": rgb}
+                    service_data = {"entity_id": target_entity, "rgb_color": rgb}
                 else:
                     brightness = self._current_values["brightness"]
                     service_data = {"entity_id": target_entity, "brightness": brightness}
+
+                if apply_startup_brightness:
+                    service_data["brightness_pct"] = self.get_config_startup_brightness()
+
                 await self.hass.services.async_call("light", "turn_on", service_data)
             else:
                 self.logger.error("No target light entity ID configured for Moving Colors instance.")
+
+        if apply_startup_brightness:
+            self._startup_brightness_applied = True
 
     async def _restore_initial_state(self) -> None:
         """Restore the light to its pre-loop state."""
@@ -884,6 +909,12 @@ class MovingColorsManager:
         """Return the current stepping value."""
         return self._get_composed_config_value(
             MCConfig.STEPS_TO_DEFAULT_ENTITY, MCInternal.STEPS_TO_DEFAULT_MANUAL, MCInternalDefaults.STEPS_TO_DEFAULT.value, int
+        )
+
+    def get_config_startup_brightness(self) -> int:
+        """Return the brightness percentage to apply once when turning the light on from off."""
+        return self._get_composed_config_value(
+            MCConfig.STARTUP_BRIGHTNESS_ENTITY, MCInternal.STARTUP_BRIGHTNESS_MANUAL, MCInternalDefaults.STARTUP_BRIGHTNESS.value, int
         )
 
     ### =========================================================

@@ -17,6 +17,7 @@
           "default_mode_enabled_entity": "Activate default mode",
           "start_from_current_position_entity": "Start color value from current position",
           "steps_to_default_entity": "Steps to default value",
+          "startup_brightness_entity": "Startup brightness",
           "debug_enabled": "Debug mode"
         },
         "data_description": {
@@ -33,6 +34,7 @@
           "default_mode_enabled_entity": "Enable default mode for the color transition based on an entity state.",
           "start_from_current_position_entity": "Start color value from current position instead of the configured start value.",
           "steps_to_default_entity": "Steps to reach the default value after disabling the color transition based on an entity state.",
+          "startup_brightness_entity": "Brightness percentage to apply once when the light turns on from off, based on an entity state. Ignored while the light is already on.",
           "debug_enabled": "Activate debug logs for this instance"
         }
       },
@@ -67,6 +69,7 @@
           "default_mode_enabled_entity": "Activate default mode",
           "start_from_current_position_entity": "Start color value from current position",
           "steps_to_default_entity": "Steps to default value",
+          "startup_brightness_entity": "Startup brightness",
           "debug_enabled": "Debug mode"
         },
         "data_description": {
@@ -82,6 +85,7 @@
           "default_mode_enabled_entity": "Enable default mode for the color transition based on an entity state.",
           "start_from_current_position_entity": "Start color value from current position instead of the configured start value.",
           "steps_to_default_entity": "Steps to reach the default value after disabling the color transition based on an entity state.",
+          "startup_brightness_entity": "Brightness percentage to apply once when the light turns on from off, based on an entity state. Ignored while the light is already on.",
           "debug_enabled": "Activate debug logs for this instance"
         }
       },
@@ -121,6 +125,9 @@
       },
       "steps_to_default_manual": {
         "name": "Steps to default value"
+      },
+      "startup_brightness_manual": {
+        "name": "Startup brightness"
       }
     },
     "sensor": {
@@ -174,6 +181,9 @@
       },
       "steps_to_default_entity": {
         "name": "Steps to default value"
+      },
+      "startup_brightness_entity": {
+        "name": "Startup brightness"
       }
     },
     "switch": {

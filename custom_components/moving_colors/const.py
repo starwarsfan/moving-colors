@@ -32,6 +32,7 @@ class MCInternal(Enum):
     TRIGGER_INTERVAL_MANUAL = "trigger_interval_manual"
     DEFAULT_VALUE_MANUAL = "default_value_manual"
     STEPS_TO_DEFAULT_MANUAL = "steps_to_default_manual"
+    STARTUP_BRIGHTNESS_MANUAL = "startup_brightness_manual"
 
     @property
     def domain(self) -> str:
@@ -51,6 +52,7 @@ class MCInternal(Enum):
             MCInternal.TRIGGER_INTERVAL_MANUAL,
             MCInternal.DEFAULT_VALUE_MANUAL,
             MCInternal.STEPS_TO_DEFAULT_MANUAL,
+            MCInternal.STARTUP_BRIGHTNESS_MANUAL,
         ):
             return "number"
         return "select"  # default/fallback
@@ -70,6 +72,7 @@ class MCConfig(Enum):
     DEFAULT_MODE_ENABLED_ENTITY = "default_mode_enabled_entity"
     START_FROM_CURRENT_POSITION_ENTITY = "start_from_current_position_entity"
     STEPS_TO_DEFAULT_ENTITY = "steps_to_default_entity"
+    STARTUP_BRIGHTNESS_ENTITY = "startup_brightness_entity"
 
 
 class MCInternalDefaults(Enum):
@@ -82,6 +85,7 @@ class MCInternalDefaults(Enum):
     TRIGGER_INTERVAL = 3  # noqa: PIE796
     DEFAULT_VALUE = 125  # noqa: PIE796
     STEPS_TO_DEFAULT = 5
+    STARTUP_BRIGHTNESS = 100
 
 
 class SensorEntries(Enum):
@@ -112,6 +116,7 @@ INTERNAL_TO_DEFAULTS_MAP = {
     MCInternal.TRIGGER_INTERVAL_MANUAL: MCInternalDefaults.TRIGGER_INTERVAL.value,
     MCInternal.DEFAULT_VALUE_MANUAL: MCInternalDefaults.DEFAULT_VALUE.value,
     MCInternal.STEPS_TO_DEFAULT_MANUAL: MCInternalDefaults.STEPS_TO_DEFAULT.value,
+    MCInternal.STARTUP_BRIGHTNESS_MANUAL: MCInternalDefaults.STARTUP_BRIGHTNESS.value,
 }
 
 NUMBER_INTERNAL_TO_EXTERNAL_MAP = {
@@ -122,6 +127,7 @@ NUMBER_INTERNAL_TO_EXTERNAL_MAP = {
     MCInternal.TRIGGER_INTERVAL_MANUAL.value: MCConfig.TRIGGER_INTERVAL_ENTITY.value,
     MCInternal.DEFAULT_VALUE_MANUAL.value: MCConfig.DEFAULT_VALUE_ENTITY.value,
     MCInternal.STEPS_TO_DEFAULT_MANUAL.value: MCConfig.STEPS_TO_DEFAULT_ENTITY.value,
+    MCInternal.STARTUP_BRIGHTNESS_MANUAL.value: MCConfig.STARTUP_BRIGHTNESS_ENTITY.value,
 }
 
 SWITCH_INTERNAL_TO_EXTERNAL_MAP = {
@@ -209,5 +215,12 @@ EXTERNAL_SENSOR_DEFINITIONS = [
         "unit": None,
         "state_class": SensorStateClass.MEASUREMENT.value,
         "icon": "mdi:chevron-double-right",
+    },
+    {
+        "config_key": MCConfig.STARTUP_BRIGHTNESS_ENTITY.value,
+        "translation_key": MCConfig.STARTUP_BRIGHTNESS_ENTITY.value,
+        "unit": "%",
+        "state_class": SensorStateClass.MEASUREMENT.value,
+        "icon": "mdi:brightness-percent",
     },
 ]

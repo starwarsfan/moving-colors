@@ -135,6 +135,21 @@ async def async_setup_entry(
                 native_unit_of_measurement="",
             ),
         ),
+        MovingColorsNumber(
+            hass,
+            config_entry,
+            key=MCInternal.STARTUP_BRIGHTNESS_MANUAL.value,
+            instance_name=sanitized_instance_name,
+            logger=instance_logger,
+            description=NumberEntityDescription(
+                key=MCInternal.STARTUP_BRIGHTNESS_MANUAL.value,
+                name="Startup brightness",  # default (English) fallback if no translation found
+                native_min_value=1.0,
+                native_max_value=100.0,
+                native_step=1.0,
+                native_unit_of_measurement="%",
+            ),
+        ),
     ]
 
     entities_to_add = []

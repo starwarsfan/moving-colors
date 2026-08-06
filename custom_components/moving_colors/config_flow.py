@@ -67,6 +67,9 @@ def get_cfg_options() -> vol.Schema:
             vol.Optional(MCConfig.STEPS_TO_DEFAULT_ENTITY.value): selector.EntitySelector(
                 selector.EntitySelectorConfig(domain=["sensor", "input_number"])
             ),
+            vol.Optional(MCConfig.STARTUP_BRIGHTNESS_ENTITY.value): selector.EntitySelector(
+                selector.EntitySelectorConfig(domain=["sensor", "input_number"])
+            ),
             vol.Optional(DEBUG_ENABLED, default=False): selector.BooleanSelector(),
         }
     )
@@ -105,6 +108,8 @@ YAML_CONFIG_SCHEMA = vol.Schema(
         vol.Optional(MCInternal.START_FROM_CURRENT_POSITION_MANUAL.value): cv.boolean,
         vol.Optional(MCConfig.STEPS_TO_DEFAULT_ENTITY.value): cv.entity_id,
         vol.Optional(MCInternal.STEPS_TO_DEFAULT_MANUAL.value): vol.Coerce(float),
+        vol.Optional(MCConfig.STARTUP_BRIGHTNESS_ENTITY.value): cv.entity_id,
+        vol.Optional(MCInternal.STARTUP_BRIGHTNESS_MANUAL.value): vol.Coerce(float),
         vol.Optional(DEBUG_ENABLED, default=False): cv.boolean,
     }
 )
