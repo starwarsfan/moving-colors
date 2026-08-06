@@ -1,5 +1,9 @@
 # Changes
 
+## 0.3.0
+### Fixes
+* Update CI test matrix and minimum required Python version to 3.13, matching current Home Assistant version requirements (https://github.com/starwarsfan/shadow-control/issues/136)
+
 ## 0.2.0
 ### Fixes
 * Internal error handling updated
