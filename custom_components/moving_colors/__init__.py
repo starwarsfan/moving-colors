@@ -432,7 +432,7 @@ class MovingColorsManager:
             self.async_start_update_task()
         else:
             self.logger.debug("Enabled state changed to OFF, stopping update task.")
-            self.stop_update_task()
+            self.hass.async_create_task(self.stop_update_task())
 
     def get_current_value(self) -> int:
         """Return the current calculated value (brightness mode only)."""
@@ -672,7 +672,7 @@ class MovingColorsManager:
         """Calculate the next dimming value(s) and update the light entity."""
         if not self.is_enabled():
             self.logger.debug("Moving Colors is disabled, skipping update.")
-            self.stop_update_task()
+            await self.stop_update_task()
             return
 
         # if now is None:
