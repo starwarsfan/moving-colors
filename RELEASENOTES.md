@@ -1,4 +1,7 @@
 # Changes
+## 0.5.0
+### Fixes
+* Make it work with Home Assistant 2026.11.0
 
 ## 0.4.0
 ### New features
