@@ -14,10 +14,10 @@ from homeassistant.const import (
     STATE_ON,
     Platform,
 )
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import Event, EventStateChangedData, HomeAssistant, callback
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_registry
-from homeassistant.helpers.event import async_track_state_change, async_track_time_interval
+from homeassistant.helpers.event import async_track_state_change_event, async_track_time_interval
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.util import slugify
 
@@ -399,7 +399,7 @@ class MovingColorsManager:
         # Listen for entity state changes
         entity_id = self._config.get(MCConfig.ENABLED_ENTITY.value)
         if entity_id:
-            unsub = async_track_state_change(self.hass, entity_id, self._handle_enabled_state_change)
+            unsub = async_track_state_change_event(self.hass, [entity_id], self._handle_enabled_state_change)
             self._unsub_callbacks.append(unsub)
 
     def _get_brightness_of_first_light_entity(self) -> int:
@@ -429,11 +429,11 @@ class MovingColorsManager:
         return self._current_value  # fallback
 
     @callback
-    def _handle_enabled_state_change(self, entity_id, old_state, new_state) -> None:
+    def _handle_enabled_state_change(self, event: Event[EventStateChangedData]) -> None:
         """Handle changes to the enabled entity."""
         if self.is_enabled():
             self.logger.debug("Enabled state changed to ON, starting update task.")
-            self.async_start_update_task()
+            self.hass.async_create_task(self.async_start_update_task())
         else:
             self.logger.debug("Enabled state changed to OFF, stopping update task.")
             self.hass.async_create_task(self.stop_update_task())
