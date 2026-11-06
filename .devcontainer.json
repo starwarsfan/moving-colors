@@ -13,6 +13,9 @@
   },
   "customizations": {
     "jetbrains": {
+      "plugins": [
+        "com.anthropic.code.plugin"
+      ],
       "settings": {
         "com.intellij:app:EditorSettings.soft_wrap_file_masks": "*.md; *.txt; *.rst; *.adoc; *.product",
         "com.intellij:app:BuiltInServerOptions.builtInServerPort": 53864,
@@ -51,6 +54,19 @@
         "libturbojpeg0",
         "libpcap-dev"
       ]
-    }
+    },
+    "ghcr.io/devcontainers/features/node:1": {},
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1": {}
+  },
+  "overrideFeatureInstallOrder": [
+    "ghcr.io/devcontainers-extra/features/apt-packages",
+    "ghcr.io/devcontainers/features/node",
+    "ghcr.io/anthropics/devcontainer-features/claude-code"
+  ],
+  "mounts": [
+    "source=claude-code-config,target=/home/vscode/.claude,type=volume"
+  ],
+  "containerEnv": {
+    "CLAUDE_CONFIG_DIR": "/home/vscode/.claude"
   }
 }
